@@ -29,3 +29,18 @@ export const joinGameRecord = async (
 
   return result.rows[0];
 };
+export const updateGameResult = async (
+  roomId: string,
+  winner: "circle" | "cross" | "draw",
+) => {
+  const result = await pool.query(
+    `UPDATE games
+     SET winner = $1,
+         status = 'completed'
+     WHERE room_id = $2
+     RETURNING id, room_id, circle_user_id, cross_user_id, winner, status, created_at`,
+    [winner, roomId],
+  );
+
+  return result.rows[0];
+};
