@@ -4,10 +4,12 @@ import { generateRoomId } from "../utils/generateRoomId";
 import { GameManager } from "../games/gameManager";
 import * as cookie from "cookie";
 import jwt from "jsonwebtoken";
+
 import {
   createGameRecord,
   joinGameRecord,
   updateGameResult,
+  deleteGameRecord,
 } from "../models/gameModel";
 const gameManager = new GameManager();
 
@@ -141,15 +143,44 @@ export function initializeSocket(httpServer: HttpServer) {
         );
       }
     });
-    socket.on("disconnect", () => {
-      const result = gameManager.handleDisconnect(socket.id);
-      if (result) {
-        io.to(result.roomId).emit("player-disconnected", result.game);
-        console.log(
-          `Player ${socket.id} disconnected from room ${result.roomId}`,
-        );
-      }
-    });
+    socket.on("disconnect", async () => {
+  const result = gameManager.handleDisconnect(socket.id);
+
+  if (!result) {
+    return;
+  }
+
+  try {
+    if (result.type === "waiting-room") {
+      await deleteGameRecord(result.roomId);
+
+      console.log(
+        `Waiting room ${result.roomId} deleted`
+      );
+
+      return;
+    }
+
+    await updateGameResult(
+      result.roomId,
+      result.game.winner!,
+    );
+
+    io.to(result.roomId).emit(
+      "player-disconnected",
+      result.game,
+    );
+
+    console.log(
+      `Player ${socket.id} disconnected from room ${result.roomId}`,
+    );
+  } catch (error) {
+    console.error(
+      "Failed to handle disconnect:",
+      error,
+    );
+  }
+});
     socket.on("request-rematch", (roomId) => {
       const result = gameManager.requestRematch(roomId, socket.id);
 

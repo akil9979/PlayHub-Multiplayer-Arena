@@ -44,3 +44,14 @@ export const updateGameResult = async (
 
   return result.rows[0];
 };
+export const deleteGameRecord = async (roomId: string) => {
+  const result = await pool.query(
+    `DELETE FROM games
+     WHERE room_id = $1
+       AND status = 'waiting'
+     RETURNING id, room_id`,
+    [roomId],
+  );
+
+  return result.rows[0];
+};

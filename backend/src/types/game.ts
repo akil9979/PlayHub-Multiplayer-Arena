@@ -25,3 +25,13 @@ export interface RematchRequest {
   circle: boolean;
   cross: boolean;
 }
+export type DisconnectResult =
+  | {
+      type: "waiting-room";
+      roomId: string;
+    }
+  | {
+      type: "active-game";
+      roomId: string;
+      game: Game;
+    };

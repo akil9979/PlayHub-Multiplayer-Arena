@@ -1,4 +1,4 @@
-import type { Game, RematchRequest } from "../types/game";
+import type { Game, RematchRequest,DisconnectResult } from "../types/game";
 import { checkWinner } from "./checkWinner";
 export class GameManager {
   private games = new Map<string, Game>();
@@ -75,28 +75,40 @@ export class GameManager {
     return game;
   }
 
-  handleDisconnect(
-    socketId: string,
-  ): { roomId: string; game: Game } | undefined {
-    for (const [roomId, game] of this.games) {
-      if (game.players.cross === socketId) {
-        game.winner = "circle";
-        return { roomId, game };
-      }
+  handleDisconnect(socketId: string): DisconnectResult | undefined {
+  for (const [roomId, game] of this.games) {
+    if (game.players.cross === socketId) {
+      game.winner = "circle";
 
-      if (game.players.circle === socketId) {
-        if (!game.players.cross) {
-          this.games.delete(roomId);
-          return undefined;
-        } else if (game.players.cross) {
-          game.winner = "cross";
-          return { roomId, game };
-        }
-      }
+      return {
+        type: "active-game",
+        roomId,
+        game,
+      };
     }
 
-    return undefined;
+    if (game.players.circle === socketId) {
+      if (!game.players.cross) {
+        this.games.delete(roomId);
+
+        return {
+          type: "waiting-room",
+          roomId,
+        };
+      }
+
+      game.winner = "cross";
+
+      return {
+        type: "active-game",
+        roomId,
+        game,
+      };
+    }
   }
+
+  return undefined;
+}
   requestRematch(
     roomId: string,
     socketId: string,
