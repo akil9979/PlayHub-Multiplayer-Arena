@@ -204,6 +204,45 @@ export function initializeSocket(httpServer: HttpServer) {
         `Player ${socket.id} requested a rematch in room ${result.roomId}`,
       );
     });
+    socket.on("leave-game", async (roomId) => {
+  const result = gameManager.leaveGame(roomId, socket.id);
+
+  if (!result) {
+    return;
+  }
+
+  try {
+    if (result.type === "waiting-room") {
+      await deleteGameRecord(result.roomId);
+
+      socket.leave(result.roomId);
+
+      console.log(
+        `Player ${socket.id} left waiting room ${result.roomId}`,
+      );
+
+      return;
+    }
+
+    await updateGameResult(
+      result.roomId,
+      result.game!.winner!,
+    );
+
+    socket.leave(result.roomId);
+
+    socket.to(result.roomId).emit(
+      "player-disconnected",
+      result.game,
+    );
+
+    console.log(
+      `Player ${socket.id} left game ${result.roomId}`,
+    );
+  } catch (error) {
+    console.error("Failed to handle leave-game:", error);
+  }
+});
   });
 
   return io;

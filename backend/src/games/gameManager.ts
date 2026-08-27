@@ -1,4 +1,4 @@
-import type { Game, RematchRequest,DisconnectResult } from "../types/game";
+import type { Game, RematchRequest, DisconnectResult } from "../types/game";
 import { checkWinner } from "./checkWinner";
 export class GameManager {
   private games = new Map<string, Game>();
@@ -76,7 +76,72 @@ export class GameManager {
   }
 
   handleDisconnect(socketId: string): DisconnectResult | undefined {
-  for (const [roomId, game] of this.games) {
+    for (const [roomId, game] of this.games) {
+      if (game.players.cross === socketId) {
+        game.winner = "circle";
+
+        return {
+          type: "active-game",
+          roomId,
+          game,
+        };
+      }
+
+      if (game.players.circle === socketId) {
+        if (!game.players.cross) {
+          this.games.delete(roomId);
+
+          return {
+            type: "waiting-room",
+            roomId,
+          };
+        }
+
+        game.winner = "cross";
+
+        return {
+          type: "active-game",
+          roomId,
+          game,
+        };
+      }
+    }
+
+    return undefined;
+  }
+  leaveGame(roomId: string,socketId: string):| {
+        type: "waiting-room" | "active-game";
+        roomId: string; 
+        game?: Game;}
+        | undefined {
+    const game = this.games.get(roomId);
+
+    if (!game) {
+      return;
+    }
+
+    // Creator leaves before opponent joins
+    if (game.players.circle === socketId && !game.players.cross) {
+      this.games.delete(roomId);
+
+      return {
+        type: "waiting-room",
+        roomId,
+      };
+    }
+
+    // Circle leaves an active game
+    if (game.players.circle === socketId && game.players.cross) {
+      game.winner = "cross";
+
+      return {
+        type: "active-game",
+        roomId,
+        game,
+      };
+    }
+
+    // Cross leaves an active game
     if (game.players.cross === socketId) {
       game.winner = "circle";
 
@@ -87,28 +152,8 @@ export class GameManager {
       };
     }
 
-    if (game.players.circle === socketId) {
-      if (!game.players.cross) {
-        this.games.delete(roomId);
-
-        return {
-          type: "waiting-room",
-          roomId,
-        };
-      }
-
-      game.winner = "cross";
-
-      return {
-        type: "active-game",
-        roomId,
-        game,
-      };
-    }
+    return;
   }
-
-  return undefined;
-}
   requestRematch(
     roomId: string,
     socketId: string,
