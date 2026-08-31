@@ -109,15 +109,42 @@ export class GameManager {
 
     return undefined;
   }
-  leaveGame(roomId: string,socketId: string):| {
-        type: "waiting-room" | "active-game";
-        roomId: string; 
-        game?: Game;}
-        | undefined {
+  leaveGame(
+    roomId: string,
+    socketId: string,
+  ):
+    | {
+        type: "waiting-room";
+        roomId: string;
+      }
+    | {
+        type: "active-game";
+        roomId: string;
+        game: Game;
+      }
+    | {
+        type: "finished-game";
+        roomId: string;
+        game: Game;
+      }
+    | undefined {
     const game = this.games.get(roomId);
 
     if (!game) {
       return;
+    }
+
+    // Game is already finished.
+    // Do NOT change the winner.
+    if (game.winner !== null) {
+      this.games.delete(roomId);
+      this.rematchRequests.delete(roomId);
+
+      return {
+        type: "finished-game",
+        roomId,
+        game,
+      };
     }
 
     // Creator leaves before opponent joins

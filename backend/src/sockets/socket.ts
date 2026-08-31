@@ -144,43 +144,32 @@ export function initializeSocket(httpServer: HttpServer) {
       }
     });
     socket.on("disconnect", async () => {
-  const result = gameManager.handleDisconnect(socket.id);
+      const result = gameManager.handleDisconnect(socket.id);
 
-  if (!result) {
-    return;
-  }
+      if (!result) {
+        return;
+      }
 
-  try {
-    if (result.type === "waiting-room") {
-      await deleteGameRecord(result.roomId);
+      try {
+        if (result.type === "waiting-room") {
+          await deleteGameRecord(result.roomId);
 
-      console.log(
-        `Waiting room ${result.roomId} deleted`
-      );
+          console.log(`Waiting room ${result.roomId} deleted`);
 
-      return;
-    }
+          return;
+        }
 
-    await updateGameResult(
-      result.roomId,
-      result.game.winner!,
-    );
+        await updateGameResult(result.roomId, result.game.winner!);
 
-    io.to(result.roomId).emit(
-      "player-disconnected",
-      result.game,
-    );
+        io.to(result.roomId).emit("player-disconnected", result.game);
 
-    console.log(
-      `Player ${socket.id} disconnected from room ${result.roomId}`,
-    );
-  } catch (error) {
-    console.error(
-      "Failed to handle disconnect:",
-      error,
-    );
-  }
-});
+        console.log(
+          `Player ${socket.id} disconnected from room ${result.roomId}`,
+        );
+      } catch (error) {
+        console.error("Failed to handle disconnect:", error);
+      }
+    });
     socket.on("request-rematch", (roomId) => {
       const result = gameManager.requestRematch(roomId, socket.id);
 
@@ -205,44 +194,43 @@ export function initializeSocket(httpServer: HttpServer) {
       );
     });
     socket.on("leave-game", async (roomId) => {
-  const result = gameManager.leaveGame(roomId, socket.id);
+      const result = gameManager.leaveGame(roomId, socket.id);
 
-  if (!result) {
-    return;
-  }
+      if (!result) {
+        return;
+      }
 
-  try {
-    if (result.type === "waiting-room") {
-      await deleteGameRecord(result.roomId);
+      try {
+        if (result.type === "waiting-room") {
+          await deleteGameRecord(result.roomId);
 
-      socket.leave(result.roomId);
+          socket.leave(result.roomId);
 
-      console.log(
-        `Player ${socket.id} left waiting room ${result.roomId}`,
-      );
+          console.log(`Player ${socket.id} left waiting room ${result.roomId}`);
 
-      return;
-    }
+          return;
+        }
+        if (result.type === "finished-game") {
+          socket.leave(result.roomId);
 
-    await updateGameResult(
-      result.roomId,
-      result.game!.winner!,
-    );
+          socket
+            .to(result.roomId)
+            .emit("player-left-finished-game", result.game);
 
-    socket.leave(result.roomId);
+          return;
+        }
 
-    socket.to(result.roomId).emit(
-      "player-disconnected",
-      result.game,
-    );
+        await updateGameResult(result.roomId, result.game!.winner!);
 
-    console.log(
-      `Player ${socket.id} left game ${result.roomId}`,
-    );
-  } catch (error) {
-    console.error("Failed to handle leave-game:", error);
-  }
-});
+        socket.leave(result.roomId);
+
+        socket.to(result.roomId).emit("player-disconnected", result.game);
+
+        console.log(`Player ${socket.id} left game ${result.roomId}`);
+      } catch (error) {
+        console.error("Failed to handle leave-game:", error);
+      }
+    });
   });
 
   return io;
