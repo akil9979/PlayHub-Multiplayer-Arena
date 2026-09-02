@@ -55,3 +55,22 @@ export const deleteGameRecord = async (roomId: string) => {
 
   return result.rows[0];
 };
+export const getUserGameHistory = async (userId: number) => {
+  const result = await pool.query(
+    `SELECT
+       id,
+       room_id,
+       circle_user_id,
+       cross_user_id,
+       winner,
+       status,
+       created_at
+     FROM games
+     WHERE (circle_user_id = $1 OR cross_user_id = $1)
+       AND status = 'completed'
+     ORDER BY created_at DESC`,
+    [userId],
+  );
+
+  return result.rows;
+};

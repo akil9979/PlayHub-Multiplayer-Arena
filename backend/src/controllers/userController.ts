@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/auth.middleware";
+import { getUserGameHistory } from "../models/gameModel";
 
 const generateToken = (userId: number) => {
   const secretKey = process.env.JWT_SECRET;
@@ -114,5 +115,20 @@ export const logoutUser =  (
     sameSite: "lax",
   })
   .json({ message: "Logged out successfully" });
+};
+export const getGameHistory = async (
+  req: AuthRequest,
+  res: Response,
+) => {
+  const userId = req.user?.userId;
+  if (!userId) {
+  return res.status(401).json({ message: "Unauthorized" });
+}
+  try {
+    const result = await getUserGameHistory(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json(error);
+  } 
 };
 
