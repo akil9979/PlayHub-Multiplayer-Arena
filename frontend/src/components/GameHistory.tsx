@@ -50,12 +50,12 @@ function GameHistoryComponent({ games, userId }: GameHistoryProps) {
 
               <div>
                 <span className="font-semibold md:hidden">Circle User: </span>
-                {game.circle_user_id}
+                {game.circle_user_name}
               </div>
 
               <div>
                 <span className="font-semibold md:hidden">Cross User: </span>
-                {game.cross_user_id}
+                {game.cross_user_name}
               </div>
 
               <div className={resultClass}>

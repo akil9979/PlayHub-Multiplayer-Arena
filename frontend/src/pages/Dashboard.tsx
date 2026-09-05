@@ -33,6 +33,7 @@ useEffect(() => {
   const fetchGameHistory = async () => {
     try {
       const result = await api.get("/games/history");
+      console.log(result.data);
       setGameHistory(result.data);
     } catch (error) {
       console.error(error);

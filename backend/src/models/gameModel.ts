@@ -58,17 +58,23 @@ export const deleteGameRecord = async (roomId: string) => {
 export const getUserGameHistory = async (userId: number) => {
   const result = await pool.query(
     `SELECT
-       id,
-       room_id,
-       circle_user_id,
-       cross_user_id,
-       winner,
-       status,
-       created_at
+       games.id,
+       games.room_id,
+       games.circle_user_id,
+       circle_user.name AS circle_user_name,
+       games.cross_user_id,
+       cross_user.name AS cross_user_name,
+       games.winner,
+       games.status,
+       games.created_at
      FROM games
-     WHERE (circle_user_id = $1 OR cross_user_id = $1)
-       AND status = 'completed'
-     ORDER BY created_at DESC`,
+     JOIN users AS circle_user
+       ON games.circle_user_id = circle_user.id
+     JOIN users AS cross_user
+       ON games.cross_user_id = cross_user.id
+     WHERE (games.circle_user_id = $1 OR games.cross_user_id = $1)
+       AND games.status = 'completed'
+     ORDER BY games.created_at DESC`,
     [userId],
   );
 

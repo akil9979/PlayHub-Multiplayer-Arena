@@ -14,8 +14,10 @@ export type GameHistory = {
   id: number;
   room_id: string;
   circle_user_id: number;
+  circle_user_name: string;
   cross_user_id: number;
+  cross_user_name: string;
   winner: "circle" | "cross" | "draw" | null;
-  status:  "completed";
+  status: "completed";
   created_at: string;
 };
