@@ -11,6 +11,8 @@ type GameStatus =
   | "finished"
   | "opponent-left";
 
+  
+
 function Game() {
   const [roomId, setRoomId] = useState("");
   const [roomInput, setRoomInput] = useState("");

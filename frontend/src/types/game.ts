@@ -10,3 +10,12 @@ export interface Game {
 
   winner: Winner;
 }
+export type GameHistory = {
+  id: number;
+  room_id: string;
+  circle_user_id: number;
+  cross_user_id: number;
+  winner: "circle" | "cross" | "draw" | null;
+  status:  "completed";
+  created_at: string;
+};
