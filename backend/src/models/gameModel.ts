@@ -13,10 +13,7 @@ export const createGameRecord = async (
 
   return result.rows[0];
 };
-export const joinGameRecord = async (
-  roomId: string,
-  crossUserId: number,
-) => {
+export const joinGameRecord = async (roomId: string, crossUserId: number) => {
   const result = await pool.query(
     `UPDATE games
      SET cross_user_id = $1,
@@ -79,4 +76,42 @@ export const getUserGameHistory = async (userId: number) => {
   );
 
   return result.rows;
+};
+
+export const getUserGameStats = async (userId: number) => {
+  const result = await pool.query(
+    `SELECT
+  COUNT(*) AS games_played,
+
+  COUNT(
+    CASE
+      WHEN (circle_user_id = $1 AND winner = 'circle')
+        OR (cross_user_id = $1 AND winner = 'cross')
+      THEN 1
+    END
+  ) AS wins,
+
+  COUNT(
+    CASE
+      WHEN (circle_user_id = $1 AND winner = 'cross')
+        OR (cross_user_id = $1 AND winner = 'circle')
+      THEN 1
+    END
+  ) AS losses,
+
+  COUNT(
+    CASE
+      WHEN winner = 'draw'
+      THEN 1
+    END
+  ) AS draws
+
+FROM games
+WHERE (circle_user_id = $1 OR cross_user_id = $1)
+  AND status = 'completed'
+    `,
+    [userId],
+  );
+
+  return result.rows[0];
 };

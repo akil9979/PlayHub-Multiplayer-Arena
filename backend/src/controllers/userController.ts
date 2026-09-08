@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/auth.middleware";
-import { getUserGameHistory } from "../models/gameModel";
+import { getUserGameHistory, getUserGameStats } from "../models/gameModel";
 
 const generateToken = (userId: number) => {
   const secretKey = process.env.JWT_SECRET;
@@ -75,7 +75,7 @@ export const loginUser = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
     };
-    
+
     res.status(200).cookie("token", token, options).json({
       id: user.id,
       name: user.name,
@@ -86,17 +86,17 @@ export const loginUser = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
-export const getProfile = async (
-  req: AuthRequest,
-  res: Response
-) => {
+export const getProfile = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
-  
+
   try {
-    const result = await pool.query("SELECT id,name,email,created_at FROM users WHERE id=$1",[userId])
-    const user=result.rows[0];
-    if(!user){
-      return res.status(404).json({message:"User not found"})
+    const result = await pool.query(
+      "SELECT id,name,email,created_at FROM users WHERE id=$1",
+      [userId],
+    );
+    const user = result.rows[0];
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json(user);
   } catch (error) {
@@ -104,31 +104,46 @@ export const getProfile = async (
   }
 };
 
-export const logoutUser =  (
-  req: Request,
-  res: Response
-) => {
-  res.status(200)
-  .clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  })
-  .json({ message: "Logged out successfully" });
+export const logoutUser = (req: Request, res: Response) => {
+  res
+    .status(200)
+    .clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .json({ message: "Logged out successfully" });
 };
-export const getGameHistory = async (
-  req: AuthRequest,
-  res: Response,
-) => {
+export const getGameHistory = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) {
-  return res.status(401).json({ message: "Unauthorized" });
-}
+    return res.status(401).json({ message: "Unauthorized" });
+  }
   try {
     const result = await getUserGameHistory(userId);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json(error);
-  } 
+  }
 };
 
+export const getGameStats = async (req: AuthRequest, res: Response) => {
+  // get userId
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  // call getUserGameStats()
+  try {
+    const result = await getUserGameStats(userId);
+    const stats = {
+      games_played: Number(result.games_played),
+      wins: Number(result.wins),
+      losses: Number(result.losses),
+      draws: Number(result.draws),
+    };
+    return res.status(200).json(stats);
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+};
