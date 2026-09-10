@@ -3,8 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../redux/hook";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
-import GameHistoryComponent from "../components/GameHistory";
-import type { GameHistory, GameStats } from "../types/game";
+import type { GameStats } from "../types/game";
 
 interface ComingSoonGame {
   id: string;
@@ -64,32 +63,21 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
 
-  const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
   const [stats, setStats] = useState<GameStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showFullHistoryModal, setShowFullHistoryModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardStats = async () => {
       try {
         setIsLoading(true);
-        const [historyRes, statsRes] = await Promise.allSettled([
-          api.get("/games/history"),
-          api.get("/users/stats"),
-        ]);
-
+        const statsRes = await api.get("/users/stats");
         if (isMounted) {
-          if (historyRes.status === "fulfilled") {
-            setGameHistory(historyRes.value.data || []);
-          }
-          if (statsRes.status === "fulfilled") {
-            setStats(statsRes.value.data || null);
-          }
+          setStats(statsRes.data || null);
         }
       } catch (error) {
-        console.error("Failed to load dashboard data:", error);
+        console.error("Failed to load user stats:", error);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -97,37 +85,17 @@ export default function Dashboard() {
       }
     };
 
-    fetchDashboardData();
+    fetchDashboardStats();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  // Compute stats if stats API didn't return or fallback
-  const totalGames = stats ? stats.games_played : gameHistory.length;
-  const wins = stats
-    ? stats.wins
-    : gameHistory.filter((g) => {
-        if (g.winner === "draw") return false;
-        return (
-          (g.winner === "circle" && g.circle_user_id === user?.id) ||
-          (g.winner === "cross" && g.cross_user_id === user?.id)
-        );
-      }).length;
-  const losses = stats
-    ? stats.losses
-    : gameHistory.filter((g) => {
-        if (g.winner === "draw" || !g.winner) return false;
-        return (
-          (g.winner === "circle" && g.circle_user_id !== user?.id) ||
-          (g.winner === "cross" && g.cross_user_id !== user?.id)
-        );
-      }).length;
-  const draws = stats
-    ? stats.draws
-    : gameHistory.filter((g) => g.winner === "draw").length;
-
+  const totalGames = stats ? stats.games_played : 0;
+  const wins = stats ? stats.wins : 0;
+  const losses = stats ? stats.losses : 0;
+  const draws = stats ? stats.draws : 0;
   const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
 
   // Rating badge based on win rate & games played
@@ -177,7 +145,7 @@ export default function Dashboard() {
               </h1>
 
               <p className="max-w-2xl text-sm sm:text-base text-slate-400 leading-relaxed">
-                Step onto the board, challenge rivals in real-time, and climb the competitive ladder. Track your combat statistics and battle history below.
+                Step onto the board, challenge rivals in real-time, and climb the competitive ladder. Track your combat statistics and battle history.
               </p>
             </div>
 
@@ -207,7 +175,7 @@ export default function Dashboard() {
                 to="/profile"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/90 px-5 py-3.5 text-sm font-semibold text-slate-200 shadow-md transition-all duration-200 hover:border-slate-600 hover:bg-slate-700 hover:text-white active:scale-95"
               >
-                <span>👤 Full Profile</span>
+                <span>👤 Full Profile & History</span>
               </Link>
             </div>
           </div>
@@ -219,7 +187,12 @@ export default function Dashboard() {
             <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
               <span>📊 Combat Performance</span>
             </h2>
-            <span className="text-xs text-slate-400">Real-time stats</span>
+            <Link
+              to="/profile"
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+            >
+              View Match History in Profile →
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
@@ -434,7 +407,7 @@ export default function Dashboard() {
                 to="/profile"
                 className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/70 px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white"
               >
-                <span>View Full Profile & Stats</span>
+                <span>View Career History & Stats</span>
                 <span>➔</span>
               </Link>
               <Link
@@ -446,53 +419,6 @@ export default function Dashboard() {
               </Link>
             </div>
           </div>
-        </section>
-
-        {/* Recent Matches Section */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                <span>⚔️ Recent Matches</span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                Showing your latest multiplayer encounters
-              </p>
-            </div>
-
-            {gameHistory.length > 0 && (
-              <div className="flex items-center gap-2">
-                {gameHistory.length > 5 && (
-                  <button
-                    onClick={() => setShowFullHistoryModal(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-700 hover:text-white"
-                  >
-                    <span>View All ({gameHistory.length})</span>
-                  </button>
-                )}
-                <Link
-                  to="/profile"
-                  className="inline-flex items-center gap-1 rounded-xl text-xs font-semibold text-indigo-400 hover:text-indigo-300 py-1.5 px-2"
-                >
-                  <span>Profile Overview</span>
-                  <span>➔</span>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-8 text-center text-slate-400">
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
-              <p className="mt-2 text-xs">Loading recent matches...</p>
-            </div>
-          ) : (
-            <GameHistoryComponent
-              games={gameHistory}
-              userId={user?.id}
-              limit={5}
-            />
-          )}
         </section>
 
         {/* More Games / Coming Soon Section */}
@@ -552,41 +478,6 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-
-      {/* Full History Modal */}
-      {showFullHistoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
-            <div className="sticky top-0 z-10 -mt-6 -mx-6 mb-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-6 py-4 backdrop-blur-md">
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  Full Match History
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Total {gameHistory.length} recorded matches
-                </p>
-              </div>
-              <button
-                onClick={() => setShowFullHistoryModal(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <GameHistoryComponent games={gameHistory} userId={user?.id} />
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowFullHistoryModal(false)}
-                className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modern Gaming Footer */}
       <footer className="mt-auto border-t border-slate-800/80 bg-slate-950/60 py-6 text-center text-xs text-slate-500">
