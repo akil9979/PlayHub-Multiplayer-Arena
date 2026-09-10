@@ -21,3 +21,9 @@ export type GameHistory = {
   status: "completed";
   created_at: string;
 };
+export type GameStats = {
+  games_played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+};

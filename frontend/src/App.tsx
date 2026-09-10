@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "./redux/hook";
 import { logout, setUser } from "./redux/slices/authSlice";
 import api from "./api/axios";
 import { socket } from "./Socket";
+import Profile from "./pages/Profile";
   
 
 function App() {
@@ -47,10 +48,11 @@ const isAuthenticated = useAppSelector(
   }, [isAuthenticated]);
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
+      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
       <Route path="/game" element={<ProtectedRoute><Game /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     </Routes>
   );
 }
