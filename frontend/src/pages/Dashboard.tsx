@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../redux/hook";
 import api from "../api/axios";
+import { socket } from "../Socket";
 import Navbar from "../components/Navbar";
-import type { GameStats } from "../types/game";
+import OnlinePlayers from "../components/OnlinePlayers";
+import type { GameStats, OnlineUser } from "../types/game";
 
 interface ComingSoonGame {
   id: string;
@@ -64,6 +66,7 @@ export default function Dashboard() {
   const user = useAppSelector((state) => state.auth.user);
 
   const [stats, setStats] = useState<GameStats | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -89,6 +92,22 @@ export default function Dashboard() {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOnlineUsers = (users: OnlineUser[]) => {
+      setOnlineUsers(users);
+    };
+
+    socket.on("online-users", handleOnlineUsers);
+
+    if (socket.connected) {
+      socket.emit("get-online-users");
+    }
+
+    return () => {
+      socket.off("online-users", handleOnlineUsers);
     };
   }, []);
 
@@ -420,6 +439,12 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* Online Players Section */}
+        <OnlinePlayers
+          onlineUsers={onlineUsers}
+          currentUserId={user?.id}
+        />
 
         {/* More Games / Coming Soon Section */}
         <section className="space-y-4">

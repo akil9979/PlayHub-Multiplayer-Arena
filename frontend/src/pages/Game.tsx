@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../Socket";
 import Board from "../components/Board";
 import type { Game as GameType, Player } from "../types/gameType";
@@ -14,17 +14,32 @@ type GameStatus =
 
 function Game() {
   const navigate = useNavigate();
-  const [roomId, setRoomId] = useState("");
+  const location = useLocation();
+
+  // Read initial match data if navigated from an accepted challenge
+  const challengeState = location.state as {
+    roomId?: string;
+    game?: GameType;
+    player?: Player;
+  } | null;
+
+  const [roomId, setRoomId] = useState(challengeState?.roomId || "");
   const [roomInput, setRoomInput] = useState("");
 
   const [opponentRequested, setOpponentRequested] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [gameStatus, setGameStatus] = useState<GameStatus>("idle");
+  const [gameStatus, setGameStatus] = useState<GameStatus>(
+    challengeState?.roomId && challengeState?.game ? "playing" : "idle",
+  );
 
-  const [game, setGame] = useState<GameType | null>(null);
-  const [player, setPlayer] = useState<Player | null>(null);
+  const [game, setGame] = useState<GameType | null>(
+    challengeState?.game || null,
+  );
+  const [player, setPlayer] = useState<Player | null>(
+    challengeState?.player || null,
+  );
 
   const [isConnected, setIsConnected] = useState(socket.connected);
 
@@ -187,6 +202,19 @@ function Game() {
       setWaitingForOpponent(false);
     };
 
+    const handleChallengeAccepted = (payload: {
+      roomId: string;
+      game: GameType;
+      player: Player;
+    }) => {
+      setRoomId(payload.roomId);
+      setGame(payload.game);
+      setPlayer(payload.player);
+      setGameStatus("playing");
+      setOpponentRequested(false);
+      setWaitingForOpponent(false);
+    };
+
     socket.on("connect", handleConnect);
     socket.on("connect_error", handleConnectError);
     socket.on("disconnect", handleDisconnect);
@@ -205,6 +233,7 @@ function Game() {
 
     socket.on("rematch-requested", handleRematchRequested);
     socket.on("rematch-accepted", handleRematchAccepted);
+    socket.on("challenge-accepted", handleChallengeAccepted);
 
     return () => {
       socket.off("connect", handleConnect);
@@ -225,6 +254,7 @@ function Game() {
 
       socket.off("rematch-requested", handleRematchRequested);
       socket.off("rematch-accepted", handleRematchAccepted);
+      socket.off("challenge-accepted", handleChallengeAccepted);
     };
   }, []);
 

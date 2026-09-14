@@ -27,3 +27,49 @@ export type GameStats = {
   losses: number;
   draws: number;
 };
+
+export interface OnlineUser {
+  userId: number;
+  name: string;
+}
+
+export interface ChallengeParticipant {
+  userId: number;
+  name: string;
+}
+
+export interface ChallengeReceivedPayload {
+  challengeId: string;
+  challenger: ChallengeParticipant;
+  createdAt: number;
+}
+
+export interface ChallengeSentPayload {
+  challengeId: string;
+  target: ChallengeParticipant;
+  createdAt: number;
+}
+
+export interface ChallengeAcceptedPayload {
+  challengeId: string;
+  roomId: string;
+  game: Game;
+  player: Player;
+  opponent: ChallengeParticipant;
+}
+
+export interface ChallengeDeclinedPayload {
+  challengeId: string;
+  target: ChallengeParticipant;
+  reason?: string;
+}
+
+export interface ChallengeCancelledPayload {
+  challengeId: string;
+  challenger?: ChallengeParticipant;
+  reason?: string;
+}
+
+export interface ChallengeErrorPayload {
+  message: string;
+}

@@ -11,12 +11,12 @@ import { logout, setUser } from "./redux/slices/authSlice";
 import api from "./api/axios";
 import { socket } from "./Socket";
 import Profile from "./pages/Profile";
-  
+import ChallengeOverlay from "./components/ChallengeOverlay";
 
 function App() {
   const dispatch = useAppDispatch();
 
-const isAuthenticated = useAppSelector(
+  const isAuthenticated = useAppSelector(
     (state) => state.auth.isAuthenticated
   );
 
@@ -46,14 +46,18 @@ const isAuthenticated = useAppSelector(
       socket.disconnect();
     };
   }, [isAuthenticated]);
+
   return (
-    <Routes>
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-      <Route path="/game" element={<ProtectedRoute><Game /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-    </Routes>
+    <>
+      {isAuthenticated && <ChallengeOverlay />}
+      <Routes>
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        <Route path="/game" element={<ProtectedRoute><Game /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      </Routes>
+    </>
   );
 }
 
