@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../Socket";
 import Board from "../components/Board";
+import Navbar from "../components/Navbar";
 import type { Game as GameType, Player } from "../types/gameType";
 import { useAppSelector } from "../redux/hook";
 
@@ -113,7 +114,7 @@ function Game() {
     if (roomId) {
       handleLeaveGame();
     }
-    navigate("/");
+    navigate("/dashboard");
   };
 
   const handleCopyRoomId = async () => {
@@ -261,11 +262,14 @@ function Game() {
   const isMyTurn = game && player && game.currentPlayer === player && !game.winner;
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:py-8 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
+    <div className="page-shell flex flex-col">
+      <Navbar variant="authenticated" />
+
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:py-8">
         {/* Top Header & Navigation */}
         <div className="flex items-center justify-between">
           <button
+            type="button"
             onClick={handleBackToDashboard}
             className="group inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-2 text-xs font-semibold text-slate-300 transition-all duration-200 hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-95"
           >
@@ -279,13 +283,13 @@ function Game() {
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                 isConnected
-                  ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-                  : "bg-rose-500/10 border border-rose-500/30 text-rose-400"
+                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border border-rose-500/30 bg-rose-500/10 text-rose-400"
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-400"
+                  isConnected ? "animate-pulse bg-emerald-400" : "bg-rose-400"
                 }`}
               />
               {isConnected ? "Connected" : "Disconnected"}

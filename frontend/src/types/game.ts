@@ -28,6 +28,16 @@ export type GameStats = {
   draws: number;
 };
 
+export interface LeaderboardEntry {
+  userId: number;
+  name: string;
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winRate: number;
+}
+
 export interface OnlineUser {
   userId: number;
   name: string;

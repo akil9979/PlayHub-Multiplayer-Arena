@@ -11,12 +11,16 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isLoading = useAppSelector((state) => state.auth.isLoading);
 
   if (isLoading) {
-  return <p>Checking authentication...</p>;
-}
+    return (
+      <div className="page-shell flex min-h-screen items-center justify-center">
+        <p className="text-sm text-slate-400">Checking authentication...</p>
+      </div>
+    );
+  }
 
-if (!isAuthenticated) {
-  return <Navigate to="/login" />;
-}
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-return children;
+  return children;
 }

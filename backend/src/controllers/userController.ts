@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/auth.middleware";
-import { getUserGameHistory, getUserGameStats } from "../models/gameModel";
+import { getUserGameHistory, getUserGameStats, getLeaderboard } from "../models/gameModel";
 
 const generateToken = (userId: number) => {
   const secretKey = process.env.JWT_SECRET;
@@ -145,5 +145,24 @@ export const getGameStats = async (req: AuthRequest, res: Response) => {
     return res.status(200).json(stats);
   } catch (error) {
     return res.status(500).json(error);
+  }
+};
+
+export const getLeaderboardController = async (_req: Request, res: Response) => {
+  try {
+    const rawLeaderboard = await getLeaderboard();
+    const leaderboard = rawLeaderboard.map((entry) => ({
+      userId: Number(entry.userId),
+      name: String(entry.name),
+      gamesPlayed: Number(entry.gamesPlayed),
+      wins: Number(entry.wins),
+      losses: Number(entry.losses),
+      draws: Number(entry.draws),
+      winRate: Number(entry.winRate),
+    }));
+    return res.status(200).json(leaderboard);
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    return res.status(500).json({ message: "Failed to fetch leaderboard", error });
   }
 };

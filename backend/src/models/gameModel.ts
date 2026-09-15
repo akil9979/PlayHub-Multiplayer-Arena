@@ -115,3 +115,48 @@ WHERE (circle_user_id = $1 OR cross_user_id = $1)
 
   return result.rows[0];
 };
+
+export const getLeaderboard = async () => {
+  const result = await pool.query(
+    `WITH player_matches AS (
+       -- Circle player perspective
+       SELECT
+         circle_user_id AS user_id,
+         CASE WHEN winner = 'circle' THEN 1 ELSE 0 END AS is_win,
+         CASE WHEN winner = 'cross' THEN 1 ELSE 0 END AS is_loss,
+         CASE WHEN winner = 'draw' THEN 1 ELSE 0 END AS is_draw
+       FROM games
+       WHERE status = 'completed'
+         AND circle_user_id IS NOT NULL
+         AND cross_user_id IS NOT NULL
+
+       UNION ALL
+
+       -- Cross player perspective
+       SELECT
+         cross_user_id AS user_id,
+         CASE WHEN winner = 'cross' THEN 1 ELSE 0 END AS is_win,
+         CASE WHEN winner = 'circle' THEN 1 ELSE 0 END AS is_loss,
+         CASE WHEN winner = 'draw' THEN 1 ELSE 0 END AS is_draw
+       FROM games
+       WHERE status = 'completed'
+         AND circle_user_id IS NOT NULL
+         AND cross_user_id IS NOT NULL
+     )
+     SELECT
+       u.id AS "userId",
+       u.name AS "name",
+       COUNT(*)::int AS "gamesPlayed",
+       SUM(pm.is_win)::int AS "wins",
+       SUM(pm.is_loss)::int AS "losses",
+       SUM(pm.is_draw)::int AS "draws",
+       ROUND((SUM(pm.is_win)::numeric / COUNT(*)) * 100, 1)::float AS "winRate"
+     FROM player_matches pm
+     JOIN users u ON u.id = pm.user_id
+     GROUP BY u.id, u.name
+     HAVING COUNT(*) > 0
+     ORDER BY "wins" DESC, "winRate" DESC, "gamesPlayed" DESC, u.id ASC`
+  );
+
+  return result.rows;
+};

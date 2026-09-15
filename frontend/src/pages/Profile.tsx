@@ -61,21 +61,21 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col selection:bg-indigo-500 selection:text-white">
-      <Navbar />
-      <div className="mx-auto max-w-4xl px-4 py-8 w-full flex-1 space-y-8">
+    <div className="page-shell flex flex-col">
+      <Navbar variant="authenticated" />
+      <div className="mx-auto w-full max-w-4xl flex-1 space-y-8 px-4 py-8">
         {/* Profile Header */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 shadow-xl backdrop-blur-xl">
+        <div className="surface-card-lg border-slate-800 bg-slate-900/80 p-6 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-3xl font-extrabold shadow-lg shadow-indigo-500/25">
               {user.name.charAt(0).toUpperCase()}
             </div>
 
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl sm:text-3xl font-bold">{user.name}</h1>
-                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
-                  ● Online
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl font-bold sm:text-3xl">{user.name}</h1>
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+                  Online
                 </span>
               </div>
               <p className="mt-1 text-sm text-slate-400">{user.email}</p>
@@ -88,8 +88,8 @@ function Profile() {
 
         {/* Statistics */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>📊 Career Statistics</span>
+          <h2 className="text-xl font-bold tracking-tight text-white">
+            Career Statistics
           </h2>
 
           {isLoading ? (
@@ -149,7 +149,9 @@ function Profile() {
                     </p>
                   </div>
 
-                  <div className="text-4xl sm:text-5xl">🏆</div>
+                  <div className="font-display text-sm font-bold tracking-wider text-amber-400">
+                    RANK
+                  </div>
                 </div>
 
                 <div className="mt-5 h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
@@ -171,8 +173,8 @@ function Profile() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                <span>⚔️ Match History</span>
+              <h2 className="text-xl font-bold tracking-tight text-white">
+                Match History
               </h2>
               <p className="text-xs text-slate-400">
                 Detailed record of all your multiplayer matches
