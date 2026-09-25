@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hook";
 import { logout } from "../redux/slices/authSlice";
 import api from "../api/axios";
+import { useSocketStatus } from "../utils/useSocketStatus";
 
 type NavbarVariant = "auto" | "public" | "authenticated";
 
@@ -203,6 +204,22 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
     });
   };
 
+  const { status: socketStatus } = useSocketStatus();
+
+  const socketLabel = {
+    connected: "Online",
+    connecting: "Connecting...",
+    disconnected: "Offline",
+    error: "Disconnected",
+  }[socketStatus];
+
+  const socketDotClass = {
+    connected: "bg-emerald-500",
+    connecting: "bg-amber-400 animate-pulse",
+    disconnected: "bg-slate-500",
+    error: "bg-rose-500",
+  }[socketStatus];
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -266,15 +283,15 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-inner">
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   <span
-                    className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-emerald-500"
-                    aria-label="Online"
+                    className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 ${socketDotClass}`}
+                    aria-label={socketLabel}
                   />
                 </div>
                 <div className="text-left">
                   <p className="text-xs font-semibold leading-tight text-slate-200">
                     {user.name}
                   </p>
-                  <p className="text-[10px] leading-tight text-slate-400">Online</p>
+                  <p className="text-[10px] leading-tight text-slate-400">{socketLabel}</p>
                 </div>
               </Link>
 
@@ -320,10 +337,14 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           {mode === "authenticated" && user && (
             <Link
               to="/profile"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
+              className="relative flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
               aria-label="Open profile"
             >
               {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+              <span
+                className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-slate-900 ${socketDotClass}`}
+                aria-label={socketLabel}
+              />
             </Link>
           )}
           <button

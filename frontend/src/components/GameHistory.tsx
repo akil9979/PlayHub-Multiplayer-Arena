@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { GameHistory } from "../types/game";
+import EmptyState from "./common/EmptyState";
 
 type GameHistoryProps = {
   games: GameHistory[];
@@ -38,17 +39,16 @@ export default function GameHistoryComponent({
 
   if (!games || games.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-800/80 bg-slate-900/40 p-8 text-center backdrop-blur-sm">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/80 text-2xl text-slate-400">
-          🎮
-        </div>
-        <h3 className="mt-4 text-base font-semibold text-slate-200">
-          No matches played yet
-        </h3>
-        <p className="mt-1 text-xs text-slate-400">
-          Your match history will appear here after your first battle.
-        </p>
-      </div>
+      <EmptyState
+        icon="🎮"
+        title="No matches played yet"
+        description="Your match history will appear here after your first battle in the arena."
+        action={{
+          label: "Enter Game Arena",
+          to: "/game",
+        }}
+        compact
+      />
     );
   }
 

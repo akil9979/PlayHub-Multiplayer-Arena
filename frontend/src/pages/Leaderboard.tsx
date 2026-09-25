@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAppSelector } from "../redux/hook";
 import Navbar from "../components/Navbar";
+import ErrorMessage from "../components/common/ErrorMessage";
+import EmptyState from "../components/common/EmptyState";
+import { TableSkeleton } from "../components/common/Skeletons";
+import { getErrorMessage } from "../utils/apiError";
 import type { LeaderboardEntry } from "../types/game";
 
 export default function Leaderboard() {
@@ -21,7 +24,9 @@ export default function Leaderboard() {
       setLeaderboard(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to load leaderboard:", err);
-      setError("Unable to load leaderboard standings. Please try again.");
+      setError(
+        getErrorMessage(err, "Unable to load leaderboard standings. Please try again.")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -326,48 +331,40 @@ export default function Leaderboard() {
 
           {/* Loading State */}
           {isLoading && (
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/40 p-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-3 border-indigo-500 border-t-transparent"></div>
-              <p className="mt-3 text-sm text-slate-400">Loading live arena leaderboard...</p>
-            </div>
+            <TableSkeleton rows={7} columns={7} />
           )}
 
           {/* Error State */}
           {!isLoading && error && (
-            <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-8 text-center">
-              <span className="text-3xl">⚠️</span>
-              <p className="mt-2 text-sm font-semibold text-rose-300">{error}</p>
-              <button
-                onClick={fetchLeaderboard}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-500 transition"
-              >
-                Retry
-              </button>
-            </div>
+            <ErrorMessage
+              title="Unable to load leaderboard"
+              message={error}
+              onRetry={fetchLeaderboard}
+            />
           )}
 
           {/* Empty State */}
           {!isLoading && !error && leaderboard.length === 0 && (
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/40 p-12 text-center space-y-4">
-              <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-indigo-500/10 text-3xl">
-                🎮
-              </div>
-              <h3 className="text-lg font-bold text-white">No Completed Matches Yet</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
-                Be the first to step into the arena! Complete a Tic-Tac-Toe match to claim the #1 spot on the leaderboard.
-              </p>
-              <Link
-                to="/game"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 hover:scale-[1.02] transition"
-              >
-                <span>Play First Match</span>
-                <span>➔</span>
-              </Link>
-            </div>
+            <EmptyState
+              icon="🏆"
+              title="No Completed Matches Yet"
+              description="Be the first to step into the arena! Complete a Tic-Tac-Toe match to claim the #1 spot on the leaderboard."
+              action={{
+                label: "Play First Match",
+                to: "/game",
+              }}
+            />
           )}
 
           {/* Leaderboard Table Container */}
           {!isLoading && !error && leaderboard.length > 0 && (
+            filteredLeaderboard.length === 0 ? (
+              <EmptyState
+                icon="🔎"
+                title="No players found"
+                description={`No leaderboard entries match “${searchQuery}”. Try a different search.`}
+              />
+            ) : (
             <div className="overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -517,8 +514,20 @@ export default function Leaderboard() {
 
                     {filteredLeaderboard.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-xs text-slate-500">
-                          No players matching "{searchQuery}"
+                        <td colSpan={7} className="py-10 text-center">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <span className="text-xl">🔍</span>
+                            <p className="text-xs text-slate-400">
+                              No players matching &ldquo;{searchQuery}&rdquo;
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setSearchQuery("")}
+                              className="mt-1 rounded-lg bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 text-xs font-semibold text-indigo-300 hover:bg-indigo-600/30 hover:text-white transition"
+                            >
+                              Clear Search
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )}
@@ -526,6 +535,7 @@ export default function Leaderboard() {
                 </table>
               </div>
             </div>
+            )
           )}
         </section>
       </main>

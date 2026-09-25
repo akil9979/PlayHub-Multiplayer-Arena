@@ -1,49 +1,66 @@
 import { useEffect, useState } from "react";
 import type { OnlineUser } from "../types/game";
 import { socket } from "../Socket";
+import { useSocketStatus } from "../utils/useSocketStatus";
+import EmptyState from "./common/EmptyState";
+import LoadingSpinner from "./common/LoadingSpinner";
+import ErrorMessage from "./common/ErrorMessage";
+import SocketStatusBadge from "./common/SocketStatusBadge";
 
 interface OnlinePlayersProps {
   onlineUsers: OnlineUser[];
   currentUserId?: number;
+  isLoading?: boolean;
 }
 
 export default function OnlinePlayers({
   onlineUsers,
   currentUserId,
+  isLoading = false,
 }: OnlinePlayersProps) {
   // Filter out the current user to display other online players
   const otherPlayers = onlineUsers.filter((u) => u.userId !== currentUserId);
 
   // Track which player we currently have an outgoing challenge with
   const [pendingTargetId, setPendingTargetId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const { isConnected } = useSocketStatus();
 
   useEffect(() => {
     const handleSent = (payload: { target: { userId: number } }) => {
       setPendingTargetId(payload.target.userId);
+      setActionError(null);
     };
 
     const handleClear = () => {
       setPendingTargetId(null);
     };
 
+    const handleChallengeError = (payload: { message?: string }) => {
+      setPendingTargetId(null);
+      setActionError(payload.message || "Unable to send this challenge. Please try again.");
+    };
+
     socket.on("challenge-sent", handleSent);
     socket.on("challenge-accepted", handleClear);
     socket.on("challenge-declined", handleClear);
     socket.on("challenge-cancelled", handleClear);
-    socket.on("challenge-error", handleClear);
+    socket.on("challenge-error", handleChallengeError);
 
     return () => {
       socket.off("challenge-sent", handleSent);
       socket.off("challenge-accepted", handleClear);
       socket.off("challenge-declined", handleClear);
       socket.off("challenge-cancelled", handleClear);
-      socket.off("challenge-error", handleClear);
+      socket.off("challenge-error", handleChallengeError);
     };
   }, []);
 
   const handleSendChallenge = (targetUserId: number) => {
-    if (!socket.connected) {
-      alert("Socket is not connected to the server.");
+    if (!isConnected) {
+      setActionError("Cannot challenge: connecting to game server...");
+      setTimeout(() => setActionError(null), 4000);
       return;
     }
 
@@ -51,6 +68,7 @@ export default function OnlinePlayers({
       return; // Already challenging someone
     }
 
+    setActionError(null);
     setPendingTargetId(targetUserId);
     socket.emit("send-challenge", { targetUserId });
   };
@@ -66,34 +84,42 @@ export default function OnlinePlayers({
             Challenge players currently active in the PlayHub arena
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <div className="flex items-center gap-2.5">
+          <SocketStatusBadge showLabel={false} />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            {onlineUsers.length} Active{" "}
+            {onlineUsers.length === 1 ? "Player" : "Players"}
           </span>
-          {onlineUsers.length} Active{" "}
-          {onlineUsers.length === 1 ? "Player" : "Players"}
-        </span>
+        </div>
       </div>
 
-      {otherPlayers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-800/80 bg-slate-900/40 p-6 text-center backdrop-blur-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800/80 text-xl text-slate-400">
-            👥
-          </div>
-          <h3 className="mt-3 text-sm font-semibold text-slate-200">
-            No other players online right now
-          </h3>
-          <p className="mt-1 text-xs text-slate-400">
-            You're currently the only player in the arena. Create a match room to
-            invite a friend!
-          </p>
-        </div>
+      {actionError && (
+        <ErrorMessage compact message={actionError} onDismiss={() => setActionError(null)} />
+      )}
+
+      {isLoading ? (
+        <LoadingSpinner center label="Finding online players..." />
+      ) : otherPlayers.length === 0 ? (
+        <EmptyState
+          icon="👥"
+          title="No other players online right now"
+          description="You're currently the only player in the arena. Create a private match room to invite a friend!"
+          action={{
+            label: "Host Match",
+            to: "/game",
+          }}
+          compact
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {otherPlayers.map((player) => {
             const isPendingThisPlayer = pendingTargetId === player.userId;
             const isAnyPending = pendingTargetId !== null;
+            const isDisabled = isAnyPending || !isConnected;
 
             return (
               <div
@@ -119,11 +145,18 @@ export default function OnlinePlayers({
                 <div className="flex-shrink-0">
                   <button
                     onClick={() => handleSendChallenge(player.userId)}
-                    disabled={isAnyPending}
+                    disabled={isDisabled}
+                    title={
+                      !isConnected
+                        ? "Connecting to server..."
+                        : isPendingThisPlayer
+                        ? "Challenge in progress"
+                        : "Send challenge"
+                    }
                     className={`inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                       isPendingThisPlayer
                         ? "border border-purple-500/40 bg-purple-500/20 text-purple-300 cursor-not-allowed animate-pulse"
-                        : isAnyPending
+                        : isDisabled
                           ? "border border-slate-800 bg-slate-800/40 text-slate-500 cursor-not-allowed"
                           : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20 hover:scale-105 hover:from-indigo-500 hover:to-purple-500"
                     }`}
@@ -133,6 +166,8 @@ export default function OnlinePlayers({
                         <span className="h-2 w-2 rounded-full bg-purple-400 animate-ping" />
                         Pending...
                       </span>
+                    ) : !isConnected ? (
+                      "Offline"
                     ) : (
                       "⚔️ Challenge"
                     )}

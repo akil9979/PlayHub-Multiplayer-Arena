@@ -132,12 +132,37 @@ export default function ChallengeOverlay() {
       showToast("Challenge Unavailable", payload.message, "error");
     };
 
+    const handleDisconnect = () => {
+      setIncomingChallenge((prev) => {
+        if (prev) {
+          showToast(
+            "Disconnected",
+            "Lost connection to server. Incoming challenge cancelled.",
+            "warning"
+          );
+        }
+        return null;
+      });
+      setOutgoingChallenge((prev) => {
+        if (prev) {
+          showToast(
+            "Disconnected",
+            "Lost connection to server. Outgoing challenge cancelled.",
+            "warning"
+          );
+        }
+        return null;
+      });
+      setIsAccepting(false);
+    };
+
     socket.on("challenge-received", handleChallengeReceived);
     socket.on("challenge-sent", handleChallengeSent);
     socket.on("challenge-accepted", handleChallengeAccepted);
     socket.on("challenge-declined", handleChallengeDeclined);
     socket.on("challenge-cancelled", handleChallengeCancelled);
     socket.on("challenge-error", handleChallengeError);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
       socket.off("challenge-received", handleChallengeReceived);
@@ -146,11 +171,12 @@ export default function ChallengeOverlay() {
       socket.off("challenge-declined", handleChallengeDeclined);
       socket.off("challenge-cancelled", handleChallengeCancelled);
       socket.off("challenge-error", handleChallengeError);
+      socket.off("disconnect", handleDisconnect);
     };
   }, [navigate]);
 
   const handleAccept = () => {
-    if (!incomingChallenge) return;
+    if (!incomingChallenge || isAccepting || !socket.connected) return;
     setIsAccepting(true);
     socket.emit("accept-challenge", {
       challengeId: incomingChallenge.challengeId,

@@ -1,51 +1,55 @@
 import type { GameHistory, GameStats } from "../types/game";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../api/axios";
 import { useAppSelector } from "../redux/hook";
 import Navbar from "../components/Navbar";
 import GameHistoryComponent from "../components/GameHistory";
+import ErrorMessage from "../components/common/ErrorMessage";
+import { StatsGridSkeleton, TableSkeleton } from "../components/common/Skeletons";
+import { getErrorMessage } from "../utils/apiError";
 
 function Profile() {
   const [stats, setStats] = useState<GameStats | null>(null);
   const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const user = useAppSelector((state) => state.auth.user);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchProfileData = async () => {
-      try {
-        setIsLoading(true);
-        const [statsRes, historyRes] = await Promise.allSettled([
-          api.get("/users/stats"),
-          api.get("/games/history"),
-        ]);
-
-        if (isMounted) {
-          if (statsRes.status === "fulfilled") {
-            setStats(statsRes.value.data);
-          }
-          if (historyRes.status === "fulfilled") {
-            setGameHistory(historyRes.value.data || []);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile data:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchProfileData();
-
-    return () => {
-      isMounted = false;
-    };
+  const fetchStats = useCallback(async () => {
+    try {
+      setIsStatsLoading(true);
+      setStatsError(null);
+      const res = await api.get("/users/stats");
+      setStats(res.data || null);
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+      setStatsError(getErrorMessage(err, "Unable to load career statistics."));
+    } finally {
+      setIsStatsLoading(false);
+    }
   }, []);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      setIsHistoryLoading(true);
+      setHistoryError(null);
+      const res = await api.get("/games/history");
+      setGameHistory(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch history:", err);
+      setHistoryError(getErrorMessage(err, "Unable to load match history."));
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    fetchHistory();
+  }, [fetchStats, fetchHistory]);
 
   const winRate =
     stats && stats.games_played > 0
@@ -92,11 +96,14 @@ function Profile() {
             Career Statistics
           </h2>
 
-          {isLoading ? (
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-8 text-center text-slate-400">
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
-              <p className="mt-2 text-xs">Loading statistics...</p>
-            </div>
+          {isStatsLoading ? (
+            <StatsGridSkeleton count={4} columns="grid-cols-2 md:grid-cols-4" />
+          ) : statsError ? (
+            <ErrorMessage
+              title="Unable to load career statistics"
+              message={statsError}
+              onRetry={fetchStats}
+            />
           ) : stats ? (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -164,7 +171,7 @@ function Profile() {
             </>
           ) : (
             <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-6 text-center text-slate-400">
-              Unable to load game statistics.
+              No statistics available yet. Play a match to start your record!
             </div>
           )}
         </div>
@@ -187,11 +194,14 @@ function Profile() {
             )}
           </div>
 
-          {isLoading ? (
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-8 text-center text-slate-400">
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
-              <p className="mt-2 text-xs">Loading match history...</p>
-            </div>
+          {isHistoryLoading ? (
+            <TableSkeleton rows={4} columns={5} />
+          ) : historyError ? (
+            <ErrorMessage
+              title="Unable to load match history"
+              message={historyError}
+              onRetry={fetchHistory}
+            />
           ) : (
             <GameHistoryComponent games={gameHistory} userId={user.id} />
           )}

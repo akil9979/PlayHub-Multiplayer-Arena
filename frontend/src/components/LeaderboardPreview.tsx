@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAppSelector } from "../redux/hook";
+import ErrorMessage from "./common/ErrorMessage";
+import EmptyState from "./common/EmptyState";
+import { getErrorMessage } from "../utils/apiError";
 import type { LeaderboardEntry } from "../types/game";
 
 export default function LeaderboardPreview() {
@@ -11,35 +14,24 @@ export default function LeaderboardPreview() {
 
   const currentUser = useAppSelector((state) => state.auth.user);
 
-  useEffect(() => {
-    let isMounted = true;
-    const fetchTopLeaderboard = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const res = await api.get("/users/leaderboard");
-        if (isMounted) {
-          const data: LeaderboardEntry[] = Array.isArray(res.data) ? res.data : [];
-          setTopPlayers(data.slice(0, 5));
-        }
-      } catch (err) {
-        console.error("Failed to load leaderboard preview:", err);
-        if (isMounted) {
-          setError("Failed to load rankings");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchTopLeaderboard();
-
-    return () => {
-      isMounted = false;
-    };
+  const fetchTopLeaderboard = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await api.get("/users/leaderboard");
+      const data: LeaderboardEntry[] = Array.isArray(res.data) ? res.data : [];
+      setTopPlayers(data.slice(0, 5));
+    } catch (err) {
+      console.error("Failed to load leaderboard preview:", err);
+      setError(getErrorMessage(err, "Failed to load standings."));
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchTopLeaderboard();
+  }, [fetchTopLeaderboard]);
 
   return (
     <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 sm:p-7 shadow-xl backdrop-blur-xl flex flex-col justify-between">
@@ -69,19 +61,37 @@ export default function LeaderboardPreview() {
         {/* Content */}
         <div className="mt-4 space-y-2.5">
           {isLoading ? (
-            <div className="py-8 text-center space-y-2">
-              <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
-              <p className="text-[11px] text-slate-400">Loading top contenders...</p>
+            <div className="space-y-2 py-1 animate-pulse">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-950/40 p-2.5"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-6 w-6 rounded-lg bg-slate-800" />
+                    <div className="h-3 w-20 rounded bg-slate-800" />
+                  </div>
+                  <div className="h-3 w-16 rounded bg-slate-800" />
+                </div>
+              ))}
             </div>
           ) : error ? (
-            <div className="py-6 text-center">
-              <p className="text-xs text-rose-400">{error}</p>
-            </div>
+            <ErrorMessage
+              compact
+              message={error}
+              onRetry={fetchTopLeaderboard}
+            />
           ) : topPlayers.length === 0 ? (
-            <div className="py-6 text-center space-y-1 text-slate-400">
-              <p className="text-xs">No matches recorded yet.</p>
-              <p className="text-[10px] text-slate-500">Play a match to claim #1!</p>
-            </div>
+            <EmptyState
+              compact
+              icon="🏆"
+              title="No matches recorded yet"
+              description="Play a match to claim the #1 spot on the arena leaderboard!"
+              action={{
+                label: "Play Match",
+                to: "/game",
+              }}
+            />
           ) : (
             topPlayers.map((player, index) => {
               const rank = index + 1;

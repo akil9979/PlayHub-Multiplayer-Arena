@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
+import ErrorMessage from "../components/common/ErrorMessage";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { getErrorMessage } from "../utils/apiError";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -16,11 +19,23 @@ function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setError(null);
     setSuccess(null);
 
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail || !password.trim()) {
       setError("All fields are required.");
+      return;
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -37,8 +52,8 @@ function Signup() {
     setIsSubmitting(true);
     try {
       await api.post("/users/create", {
-        name,
-        email,
+        name: trimmedName,
+        email: trimmedEmail,
         password,
       });
 
@@ -52,21 +67,10 @@ function Signup() {
         navigate("/login");
       }, 1200);
     } catch (err: unknown) {
-      console.error(err);
-      const message =
-        err &&
-        typeof err === "object" &&
-        "response" in err &&
-        err.response &&
-        typeof err.response === "object" &&
-        "data" in err.response &&
-        err.response.data &&
-        typeof err.response.data === "object" &&
-        "message" in err.response.data &&
-        typeof err.response.data.message === "string"
-          ? err.response.data.message
-          : "Something went wrong while creating your account.";
-      setError(message);
+      console.error("Signup failed:", err);
+      setError(
+        getErrorMessage(err, "Something went wrong while creating your account.")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -126,14 +130,7 @@ function Signup() {
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4" noValidate>
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
-                >
-                  {error}
-                </div>
-              )}
+              {error && <ErrorMessage compact message={error} onDismiss={() => setError(null)} />}
               {success && (
                 <div
                   role="status"
@@ -214,8 +211,19 @@ function Signup() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary w-full py-3.5" disabled={isSubmitting}>
-                {isSubmitting ? "Creating account..." : "Create Account"}
+              <button
+                type="submit"
+                className="btn-primary w-full py-3.5"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span>Creating account...</span>
+                  </span>
+                ) : (
+                  "Create Account"
+                )}
               </button>
             </form>
 

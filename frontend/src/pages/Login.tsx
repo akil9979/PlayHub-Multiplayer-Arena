@@ -4,6 +4,9 @@ import api from "../api/axios";
 import { useAppDispatch } from "../redux/hook";
 import { setUser } from "../redux/slices/authSlice";
 import Navbar from "../components/Navbar";
+import ErrorMessage from "../components/common/ErrorMessage";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { getErrorMessage } from "../utils/apiError";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -16,6 +19,8 @@ function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setError(null);
 
     if (!email.trim() || !password.trim()) {
@@ -26,28 +31,15 @@ function Login() {
     setIsSubmitting(true);
     try {
       const response = await api.post("/users/login", {
-        email,
+        email: email.trim(),
         password,
       });
 
       dispatch(setUser(response.data));
       navigate("/dashboard");
     } catch (err: unknown) {
-      console.error(err);
-      const message =
-        err &&
-        typeof err === "object" &&
-        "response" in err &&
-        err.response &&
-        typeof err.response === "object" &&
-        "data" in err.response &&
-        err.response.data &&
-        typeof err.response.data === "object" &&
-        "message" in err.response.data &&
-        typeof err.response.data.message === "string"
-          ? err.response.data.message
-          : "Invalid email or password.";
-      setError(message);
+      console.error("Login failed:", err);
+      setError(getErrorMessage(err, "Invalid email or password."));
     } finally {
       setIsSubmitting(false);
     }
@@ -112,14 +104,7 @@ function Login() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5" noValidate>
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
-                >
-                  {error}
-                </div>
-              )}
+              {error && <ErrorMessage compact message={error} onDismiss={() => setError(null)} />}
 
               <div className="space-y-2">
                 <label htmlFor="login-email" className="text-sm font-medium text-slate-300">
@@ -155,8 +140,19 @@ function Login() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary w-full py-3.5" disabled={isSubmitting}>
-                {isSubmitting ? "Signing in..." : "Login"}
+              <button
+                type="submit"
+                className="btn-primary w-full py-3.5"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span>Signing in...</span>
+                  </span>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
 

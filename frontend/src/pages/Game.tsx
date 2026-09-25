@@ -3,6 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../Socket";
 import Board from "../components/Board";
 import Navbar from "../components/Navbar";
+import SocketStatusBadge from "../components/common/SocketStatusBadge";
+import ErrorMessage from "../components/common/ErrorMessage";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { useSocketStatus } from "../utils/useSocketStatus";
 import type { Game as GameType, Player } from "../types/gameType";
 import { useAppSelector } from "../redux/hook";
 
@@ -31,6 +35,11 @@ function Game() {
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+  const [lobbyError, setLobbyError] = useState<string | null>(null);
+  const [rematchError, setRematchError] = useState<string | null>(null);
+
   const [gameStatus, setGameStatus] = useState<GameStatus>(
     challengeState?.roomId && challengeState?.game ? "playing" : "idle",
   );
@@ -42,16 +51,18 @@ function Game() {
     challengeState?.player || null,
   );
 
-  const [isConnected, setIsConnected] = useState(socket.connected);
+  const { status, isConnected } = useSocketStatus();
 
   const user = useAppSelector((state) => state.auth.user);
 
   const handleCreateRoom = () => {
-    if (!socket.connected) {
-      alert("Not connected to game server.");
+    if (!isConnected) {
+      setLobbyError("Cannot create room: not connected to game server.");
       return;
     }
 
+    setLobbyError(null);
+    setIsCreatingRoom(true);
     setGame(null);
     setPlayer(null);
     setOpponentRequested(false);
@@ -62,16 +73,18 @@ function Game() {
   };
 
   const joinRoom = () => {
-    if (!socket.connected) {
-      alert("Not connected to game server.");
+    if (!isConnected) {
+      setLobbyError("Cannot join room: not connected to game server.");
       return;
     }
 
     if (!roomInput.trim()) {
-      alert("Please enter a room code.");
+      setLobbyError("Please enter a room code.");
       return;
     }
 
+    setLobbyError(null);
+    setIsJoiningRoom(true);
     setGame(null);
     setPlayer(null);
     setOpponentRequested(false);
@@ -83,7 +96,7 @@ function Game() {
 
   const handleRematchRequest = () => {
     if (!socket.connected) {
-      alert("Not connected to game server.");
+      setRematchError("Connection to the game server is unavailable. Please reconnect and try again.");
       return;
     }
 
@@ -92,6 +105,7 @@ function Game() {
     }
 
     socket.emit("request-rematch", roomId);
+    setRematchError(null);
     setWaitingForOpponent(true);
   };
 
@@ -108,6 +122,9 @@ function Game() {
     setGameStatus("idle");
     setOpponentRequested(false);
     setWaitingForOpponent(false);
+    setIsCreatingRoom(false);
+    setIsJoiningRoom(false);
+    setLobbyError(null);
   };
 
   const handleBackToDashboard = () => {
@@ -134,30 +151,37 @@ function Game() {
   useEffect(() => {
     const handleConnect = () => {
       console.log("Connected! Socket ID:", socket.id);
-      setIsConnected(true);
+      setLobbyError(null);
     };
 
     const handleConnectError = (error: Error) => {
       console.error("Socket connection failed:", error.message);
-      setIsConnected(false);
+      setIsCreatingRoom(false);
+      setIsJoiningRoom(false);
+      setLobbyError("Game server connection error. Retrying...");
     };
 
     const handleDisconnect = (reason: string) => {
       console.log("Socket disconnected:", reason);
-      setIsConnected(false);
+      setIsCreatingRoom(false);
+      setIsJoiningRoom(false);
     };
 
     const handleRoomCreated = (createdRoomId: string) => {
+      setIsCreatingRoom(false);
+      setLobbyError(null);
       setRoomId(createdRoomId);
       setGameStatus("waiting");
     };
 
     const handleRoomNotFound = () => {
-      alert("Room not found! Please check the room code.");
+      setIsJoiningRoom(false);
+      setLobbyError("Room not found! Please check the room code and try again.");
     };
 
     const handleRoomFull = () => {
-      alert("This room is already full (maximum 2 players).");
+      setIsJoiningRoom(false);
+      setLobbyError("This room is already full (maximum 2 players).");
     };
 
     const handlePlayerJoined = () => {
@@ -173,6 +197,8 @@ function Game() {
     };
 
     const handleRoomJoined = (joinedRoomId: string) => {
+      setIsJoiningRoom(false);
+      setLobbyError(null);
       setRoomId(joinedRoomId);
       setGameStatus("waiting");
     };
@@ -280,20 +306,7 @@ function Game() {
           </button>
 
           <div className="flex items-center gap-2.5">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                isConnected
-                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                  : "border border-rose-500/30 bg-rose-500/10 text-rose-400"
-              }`}
-            >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  isConnected ? "animate-pulse bg-emerald-400" : "bg-rose-400"
-                }`}
-              />
-              {isConnected ? "Connected" : "Disconnected"}
-            </span>
+            <SocketStatusBadge showRetry />
           </div>
         </div>
 
@@ -319,6 +332,23 @@ function Game() {
           {/* 1. LOBBY STATE (No Room Selected) */}
           {gameStatus === "idle" && !roomId && (
             <div className="space-y-6">
+              {status === "connecting" && (
+                <LoadingSpinner center size="sm" label="Connecting to game server..." />
+              )}
+              {status === "error" && (
+                <ErrorMessage
+                  compact
+                  message="Unable to connect to the game server. Use Reconnect above and try again."
+                />
+              )}
+              {lobbyError && (
+                <ErrorMessage
+                  compact
+                  message={lobbyError}
+                  onDismiss={() => setLobbyError(null)}
+                />
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Host a match */}
                 <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-5 shadow-lg transition-all hover:border-indigo-500/40">
@@ -333,10 +363,13 @@ function Game() {
                   </div>
                   <button
                     onClick={handleCreateRoom}
-                    disabled={!isConnected}
-                    className="mt-4 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:from-indigo-500 hover:to-purple-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!isConnected || isCreatingRoom || isJoiningRoom}
+                    className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:from-indigo-500 hover:to-purple-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    Create Private Room
+                    {isCreatingRoom && (
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    )}
+                    <span>{isCreatingRoom ? "Creating Room..." : "Create Private Room"}</span>
                   </button>
                 </div>
 
@@ -355,16 +388,24 @@ function Game() {
                   <div className="mt-4 space-y-2">
                     <input
                       value={roomInput}
-                      onChange={(e) => setRoomInput(e.target.value)}
+                      onChange={(e) => {
+                        setRoomInput(e.target.value.toUpperCase());
+                        if (lobbyError) setLobbyError(null);
+                      }}
                       placeholder="Enter 6-character code"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none"
+                      maxLength={12}
+                      disabled={isCreatingRoom || isJoiningRoom}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none uppercase font-mono tracking-wider"
                     />
                     <button
                       onClick={joinRoom}
-                      disabled={!isConnected}
-                      className="w-full rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-200 transition-all hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!isConnected || isCreatingRoom || isJoiningRoom || !roomInput.trim()}
+                      className="flex items-center justify-center gap-2 w-full rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-200 transition-all hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Join Room
+                      {isJoiningRoom && (
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      )}
+                      <span>{isJoiningRoom ? "Joining Room..." : "Join Room"}</span>
                     </button>
                   </div>
                 </div>
@@ -575,6 +616,13 @@ function Game() {
                 {/* Rematch Section (Only when game is finished and opponent has NOT left) */}
                 {game.winner && gameStatus !== "opponent-left" && (
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-center space-y-3">
+                    {rematchError && (
+                      <ErrorMessage
+                        compact
+                        message={rematchError}
+                        onDismiss={() => setRematchError(null)}
+                      />
+                    )}
                     {opponentRequested && (
                       <p className="text-xs font-semibold text-indigo-300 animate-pulse">
                         ⚔️ Your opponent has requested a rematch!

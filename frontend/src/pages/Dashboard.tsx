@@ -6,6 +6,9 @@ import { socket } from "../Socket";
 import Navbar from "../components/Navbar";
 import OnlinePlayers from "../components/OnlinePlayers";
 import LeaderboardPreview from "../components/LeaderboardPreview";
+import ErrorMessage from "../components/common/ErrorMessage";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import { getErrorMessage } from "../utils/apiError";
 import type { GameStats, OnlineUser } from "../types/game";
 
 interface ComingSoonGame {
@@ -65,40 +68,42 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState<GameStats | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [isOnlineLoading, setIsOnlineLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setIsLoading(true);
+      setStatsError(null);
+      const statsRes = await api.get("/users/stats");
+      setStats(statsRes.data || null);
+    } catch (error) {
+      console.error("Failed to load user stats:", error);
+      setStatsError(
+        getErrorMessage(error, "Failed to load player performance stats.")
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchDashboardStats = async () => {
-      try {
-        setIsLoading(true);
-        const statsRes = await api.get("/users/stats");
-        if (isMounted) {
-          setStats(statsRes.data || null);
-        }
-      } catch (error) {
-        console.error("Failed to load user stats:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
     fetchDashboardStats();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   useEffect(() => {
     const handleOnlineUsers = (users: OnlineUser[]) => {
       setOnlineUsers(users);
+      setIsOnlineLoading(false);
     };
 
+    const handleConnect = () => socket.emit("get-online-users");
+    const handleDisconnect = () => setIsOnlineLoading(false);
+
     socket.on("online-users", handleOnlineUsers);
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     if (socket.connected) {
       socket.emit("get-online-users");
@@ -106,6 +111,8 @@ export default function Dashboard() {
 
     return () => {
       socket.off("online-users", handleOnlineUsers);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
     };
   }, []);
 
@@ -189,62 +196,72 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-            <div className="surface-card p-4 transition hover:border-slate-700 sm:p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Matches
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
-                {isLoading ? "..." : totalGames}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">Games played</p>
-            </div>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : statsError ? (
+            <ErrorMessage
+              title="Unable to load performance statistics"
+              message={statsError}
+              onRetry={fetchDashboardStats}
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+              <div className="surface-card p-4 transition hover:border-slate-700 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Matches
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
+                  {totalGames}
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">Games played</p>
+              </div>
 
-            <div className="surface-card border-emerald-500/20 p-4 transition hover:border-emerald-500/40 sm:p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                Victories
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-400 sm:text-3xl">
-                {isLoading ? "..." : wins}
-              </p>
-              <p className="mt-1 text-[11px] text-emerald-500/80">Wins</p>
-            </div>
+              <div className="surface-card border-emerald-500/20 p-4 transition hover:border-emerald-500/40 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                  Victories
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-emerald-400 sm:text-3xl">
+                  {wins}
+                </p>
+                <p className="mt-1 text-[11px] text-emerald-500/80">Wins</p>
+              </div>
 
-            <div className="surface-card border-rose-500/20 p-4 transition hover:border-rose-500/40 sm:p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
-                Defeats
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-rose-400 sm:text-3xl">
-                {isLoading ? "..." : losses}
-              </p>
-              <p className="mt-1 text-[11px] text-rose-500/80">Losses</p>
-            </div>
+              <div className="surface-card border-rose-500/20 p-4 transition hover:border-rose-500/40 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+                  Defeats
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-rose-400 sm:text-3xl">
+                  {losses}
+                </p>
+                <p className="mt-1 text-[11px] text-rose-500/80">Losses</p>
+              </div>
 
-            <div className="surface-card border-amber-500/20 p-4 transition hover:border-amber-500/40 sm:p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
-                Draws
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-amber-400 sm:text-3xl">
-                {isLoading ? "..." : draws}
-              </p>
-              <p className="mt-1 text-[11px] text-amber-500/80">Stalemates</p>
-            </div>
+              <div className="surface-card border-amber-500/20 p-4 transition hover:border-amber-500/40 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  Draws
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-amber-400 sm:text-3xl">
+                  {draws}
+                </p>
+                <p className="mt-1 text-[11px] text-amber-500/80">Stalemates</p>
+              </div>
 
-            <div className="col-span-2 surface-card border-indigo-500/20 p-4 transition hover:border-indigo-500/40 sm:col-span-3 sm:p-5 lg:col-span-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-                Win Rate
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-indigo-300 sm:text-3xl">
-                {isLoading ? "..." : `${winRate.toFixed(1)}%`}
-              </p>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500"
-                  style={{ width: `${Math.min(winRate, 100)}%` }}
-                />
+              <div className="col-span-2 surface-card border-indigo-500/20 p-4 transition hover:border-indigo-500/40 sm:col-span-3 sm:p-5 lg:col-span-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                  Win Rate
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-indigo-300 sm:text-3xl">
+                  {`${winRate.toFixed(1)}%`}
+                </p>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500"
+                    style={{ width: `${Math.min(winRate, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* 3. Featured playable game */}
@@ -338,7 +355,11 @@ export default function Dashboard() {
         </section>
 
         {/* 4. Online players / challenge system */}
-        <OnlinePlayers onlineUsers={onlineUsers} currentUserId={user?.id} />
+        <OnlinePlayers
+          onlineUsers={onlineUsers}
+          currentUserId={user?.id}
+          isLoading={isOnlineLoading}
+        />
 
         {/* 5. Upcoming games */}
         <section className="space-y-4">
