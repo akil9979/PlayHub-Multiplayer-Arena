@@ -4,28 +4,34 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../middleware/auth.middleware";
 import { getUserGameHistory, getUserGameStats, getLeaderboard } from "../models/gameModel";
+import { config } from "../config/env";
+import {
+  isValidEmail,
+  isValidName,
+  isValidPassword,
+} from "../utils/validation";
 
 const generateToken = (userId: number) => {
-  const secretKey = process.env.JWT_SECRET;
-
-  if (!secretKey) {
-    throw new Error("JWT_SECRET is not defined");
-  }
-
-  return jwt.sign({ userId }, secretKey, { expiresIn: "24h" });
+  return jwt.sign({ userId }, config.jwtSecret, { expiresIn: "24h" });
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  let { name, email, password } = req.body;
-  if (!name?.trim() || !email?.trim() || !password?.trim()) {
+  const { name, email, password } = req.body as {
+    name?: unknown;
+    email?: unknown;
+    password?: unknown;
+  };
+  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+  if (!isValidName(name) || !isValidEmail(normalizedEmail) || !isValidPassword(password)) {
     return res.status(400).json({
-      message: "Name, email and password are required",
+      message: "Please provide a valid name, email, and password of 6 to 128 characters.",
     });
   }
   try {
     const existingUser = await pool.query(
       "SELECT id FROM users WHERE email = $1",
-      [email],
+      [normalizedEmail],
     );
     if (existingUser.rows.length > 0) {
       return res.status(409).json({
@@ -37,29 +43,34 @@ export const createUser = async (req: Request, res: Response) => {
       `INSERT INTO users (name, email, password_hash)
    VALUES ($1, $2, $3)
    RETURNING id, name, email, created_at`,
-      [name, email, hashedPassword],
+      [name.trim(), normalizedEmail, hashedPassword],
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Failed to create user:", error);
+    res.status(500).json({ message: "Unable to create account. Please try again." });
   }
 };
 export const loginUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (!email?.trim() || !password?.trim()) {
+  const { email, password } = req.body as {
+    email?: unknown;
+    password?: unknown;
+  };
+  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  if (!isValidEmail(normalizedEmail) || !isValidPassword(password)) {
     return res.status(400).json({
-      message: " email and password are required",
+      message: "Please provide a valid email and password.",
     });
   }
 
   try {
     const result = await pool.query(
       "SELECT id, name, email, password_hash, created_at FROM users WHERE email = $1",
-      [email],
+      [normalizedEmail],
     );
     if (result.rows.length === 0) {
       return res.status(401).json({
-        message: "Invalid email ",
+        message: "Invalid email or password.",
       });
     }
     const user = result.rows[0];
@@ -70,20 +81,15 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
     const token = generateToken(user.id);
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-    };
-
-    res.status(200).cookie("token", token, options).json({
+    res.status(200).cookie("token", token, config.cookie).json({
       id: user.id,
       name: user.name,
       email: user.email,
       created_at: user.created_at,
     });
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Failed to authenticate user:", error);
+    res.status(500).json({ message: "Unable to sign in. Please try again." });
   }
 };
 export const getProfile = async (req: AuthRequest, res: Response) => {
@@ -100,18 +106,15 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Failed to load profile:", error);
+    res.status(500).json({ message: "Unable to load profile. Please try again." });
   }
 };
 
 export const logoutUser = (req: Request, res: Response) => {
   res
     .status(200)
-    .clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
+    .clearCookie("token", config.cookie)
     .json({ message: "Logged out successfully" });
 };
 export const getGameHistory = async (req: AuthRequest, res: Response) => {
@@ -123,7 +126,8 @@ export const getGameHistory = async (req: AuthRequest, res: Response) => {
     const result = await getUserGameHistory(userId);
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Failed to load game history:", error);
+    res.status(500).json({ message: "Unable to load game history. Please try again." });
   }
 };
 
@@ -144,7 +148,8 @@ export const getGameStats = async (req: AuthRequest, res: Response) => {
     };
     return res.status(200).json(stats);
   } catch (error) {
-    return res.status(500).json(error);
+    console.error("Failed to load game stats:", error);
+    return res.status(500).json({ message: "Unable to load game statistics. Please try again." });
   }
 };
 
@@ -163,6 +168,6 @@ export const getLeaderboardController = async (_req: Request, res: Response) => 
     return res.status(200).json(leaderboard);
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
-    return res.status(500).json({ message: "Failed to fetch leaderboard", error });
+    return res.status(500).json({ message: "Unable to load leaderboard. Please try again." });
   }
 };

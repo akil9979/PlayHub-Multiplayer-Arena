@@ -20,6 +20,7 @@ export const joinGameRecord = async (roomId: string, crossUserId: number) => {
          status = 'playing'
      WHERE room_id = $2
        AND cross_user_id IS NULL
+       AND circle_user_id <> $1
      RETURNING id, room_id, circle_user_id, cross_user_id, winner, status, created_at`,
     [crossUserId, roomId],
   );

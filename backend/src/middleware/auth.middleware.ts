@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { config } from "../config/env";
+import { isPositiveInteger } from "../utils/validation";
 interface JwtPayload {
-  userId: number;
+  userId?: unknown;
 }
 export interface AuthRequest extends Request {
   user?: {
@@ -14,7 +16,6 @@ export const authMiddleware = (
   next: NextFunction,
 ) => {
   const token = req.cookies.token;
-  const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token) {
     return res
@@ -23,10 +24,11 @@ export const authMiddleware = (
   }
 
   try {
-    if (!JWT_SECRET) {
-      return res.status(500).json({ message: "Server configuration error." });
+    const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
+
+    if (!isPositiveInteger(decoded.userId)) {
+      return res.status(401).json({ message: "Invalid authentication token." });
     }
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     req.user = {
       userId: decoded.userId,

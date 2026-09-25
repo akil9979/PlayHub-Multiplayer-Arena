@@ -4,6 +4,14 @@ import { generateRoomId } from "../utils/generateRoomId";
 import { GameManager } from "../games/gameManager";
 import * as cookie from "cookie";
 import jwt from "jsonwebtoken";
+import { config } from "../config/env";
+import {
+  isPositiveInteger,
+  isValidChallengePayload,
+  isValidMovePayload,
+  isValidRoomId,
+  isValidTargetUserPayload,
+} from "../utils/validation";
 
 import {
   createGameRecord,
@@ -21,7 +29,7 @@ const challengeManager = new ChallengeManager();
 export function initializeSocket(httpServer: HttpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: config.frontendOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -41,16 +49,12 @@ export function initializeSocket(httpServer: HttpServer) {
       return next(new Error("Authentication required"));
     }
 
-    const JWT_SECRET = process.env.JWT_SECRET;
-
-    if (!JWT_SECRET) {
-      return next(new Error("JWT secret is not configured"));
-    }
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+      const decoded = jwt.verify(token, config.jwtSecret) as { userId?: unknown };
+      if (!isPositiveInteger(decoded.userId)) {
+        return next(new Error("Invalid authentication token"));
+      }
       socket.userId = decoded.userId;
-      console.log("Authenticated user:", decoded.userId);
 
       next();
     } catch (error) {
@@ -81,9 +85,15 @@ export function initializeSocket(httpServer: HttpServer) {
 
     socket.on(
       "send-challenge",
-      async ({ targetUserId }: { targetUserId: number }) => {
+      async (payload: unknown) => {
         try {
           challengeManager.cleanExpired();
+
+          if (!isValidTargetUserPayload(payload)) {
+            socket.emit("challenge-error", { message: "Invalid challenge target." });
+            return;
+          }
+          const { targetUserId } = payload;
 
           const challengerUserId = socket.userId;
           if (!challengerUserId) {
@@ -176,9 +186,15 @@ export function initializeSocket(httpServer: HttpServer) {
 
     socket.on(
       "accept-challenge",
-      async ({ challengeId }: { challengeId: string }) => {
+      async (payload: unknown) => {
         try {
           challengeManager.cleanExpired();
+
+          if (!isValidChallengePayload(payload)) {
+            socket.emit("challenge-error", { message: "Invalid challenge." });
+            return;
+          }
+          const { challengeId } = payload;
 
           const challengedUserId = socket.userId;
           const challenge = challengeManager.getChallenge(challengeId);
@@ -290,8 +306,10 @@ export function initializeSocket(httpServer: HttpServer) {
 
     socket.on(
       "decline-challenge",
-      ({ challengeId }: { challengeId: string }) => {
+      (payload: unknown) => {
         try {
+          if (!isValidChallengePayload(payload)) return;
+          const { challengeId } = payload;
           const challenge = challengeManager.getChallenge(challengeId);
           if (!challenge || challenge.status !== "pending") return;
 
@@ -321,8 +339,10 @@ export function initializeSocket(httpServer: HttpServer) {
 
     socket.on(
       "cancel-challenge",
-      ({ challengeId }: { challengeId: string }) => {
+      (payload: unknown) => {
         try {
+          if (!isValidChallengePayload(payload)) return;
+          const { challengeId } = payload;
           const challenge = challengeManager.getChallenge(challengeId);
           if (!challenge || challenge.status !== "pending") return;
 
@@ -374,7 +394,14 @@ export function initializeSocket(httpServer: HttpServer) {
       }
     });
 
-    socket.on("join-room", async (joinRoomId) => {
+    socket.on("join-room", async (payload: unknown) => {
+      const joinRoomId =
+        typeof payload === "string" ? payload.trim().toUpperCase() : "";
+      if (!isValidRoomId(joinRoomId)) {
+        socket.emit("room-not-found");
+        return;
+      }
+
       const room = io.sockets.adapter.rooms.get(joinRoomId);
 
       if (!room) {
@@ -412,7 +439,12 @@ export function initializeSocket(httpServer: HttpServer) {
         socket.emit("join-failed");
       }
     });
-    socket.on("make-move", async ({ roomId, index }) => {
+    socket.on("make-move", async (payload: unknown) => {
+      if (!isValidMovePayload(payload)) {
+        socket.emit("game-error", { message: "Invalid move." });
+        return;
+      }
+      const { roomId, index } = payload;
       const updatedGame = gameManager.makeMove(roomId, index, socket.id);
 
       if (updatedGame) {
@@ -496,7 +528,12 @@ export function initializeSocket(httpServer: HttpServer) {
         console.error("Failed to handle disconnect:", error);
       }
     });
-    socket.on("request-rematch", (roomId) => {
+    socket.on("request-rematch", (payload: unknown) => {
+      if (!isValidRoomId(payload)) {
+        socket.emit("game-error", { message: "Invalid room." });
+        return;
+      }
+      const roomId = payload;
       const result = gameManager.requestRematch(roomId, socket.id);
 
       if (!result) {
@@ -519,7 +556,12 @@ export function initializeSocket(httpServer: HttpServer) {
         `Player ${socket.id} requested a rematch in room ${result.roomId}`,
       );
     });
-    socket.on("leave-game", async (roomId) => {
+    socket.on("leave-game", async (payload: unknown) => {
+      if (!isValidRoomId(payload)) {
+        socket.emit("game-error", { message: "Invalid room." });
+        return;
+      }
+      const roomId = payload;
       const result = gameManager.leaveGame(roomId, socket.id);
 
       if (!result) {
