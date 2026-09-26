@@ -9,6 +9,7 @@ import PublicRoute from "./components/PublicRoutes";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./redux/hook";
 import { logout, setUser } from "./redux/slices/authSlice";
+import axios from "axios";
 import api from "./api/axios";
 import { socket } from "./Socket";
 import Profile from "./pages/Profile";
@@ -43,7 +44,12 @@ function App() {
         const response = await api.get("/users/profile");
         dispatch(setUser(response.data));
       } catch (error) {
-        console.error(error);
+        const isExpectedUnauthenticated =
+          axios.isAxiosError(error) && error.response?.status === 401;
+
+        if (!isExpectedUnauthenticated) {
+          console.error(error);
+        }
         dispatch(logout());
       }
     };
