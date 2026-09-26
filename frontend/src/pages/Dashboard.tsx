@@ -418,12 +418,12 @@ export default function Dashboard() {
             <h2 className="text-xl font-bold tracking-tight text-white">
               Arena Standings
             </h2>
-            <Link
+            {/* <Link
               to="/leaderboard"
               className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
             >
               Full leaderboard →
-            </Link>
+            </Link> */}
           </div>
           <LeaderboardPreview />
         </section>
