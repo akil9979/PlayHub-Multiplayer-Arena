@@ -29,15 +29,15 @@ export default function SocketStatusBadge({
       title: "Establishing real-time connection...",
     },
     disconnected: {
-      color: "border-slate-700/60 bg-slate-800/60 text-slate-400",
-      dot: "bg-slate-500",
+      color: "border-[#27272a] bg-[#18181b] text-zinc-400",
+      dot: "bg-zinc-500",
       ping: false,
       label: "Disconnected",
       title: "Disconnected from game server",
     },
     error: {
-      color: "border-rose-500/30 bg-rose-500/10 text-rose-400",
-      dot: "bg-rose-500",
+      color: "border-red-500/30 bg-red-500/10 text-red-400",
+      dot: "bg-red-500",
       ping: false,
       label: "Connection Error",
       title: error || "Connection to game server failed",
@@ -48,7 +48,7 @@ export default function SocketStatusBadge({
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <span
         title={config.title}
-        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.color} transition-all`}
+        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.color} transition-colors`}
       >
         <span className="relative flex h-2 w-2">
           {config.ping && (
@@ -66,7 +66,7 @@ export default function SocketStatusBadge({
           type="button"
           onClick={reconnect}
           title="Reconnect to server"
-          className="rounded-lg border border-slate-700 bg-slate-800/80 px-2 py-0.5 text-[11px] font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
+          className="rounded-lg border border-[#3f3f46] bg-[#27272a] px-2 py-0.5 text-[11px] font-semibold text-zinc-300 transition-colors hover:bg-[#3f3f46] hover:text-white"
         >
           Reconnect
         </button>

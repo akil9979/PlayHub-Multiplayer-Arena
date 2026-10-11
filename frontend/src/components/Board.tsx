@@ -41,8 +41,15 @@ function Board({ game, roomId, player }: BoardProps) {
   }
 
   return (
-    <div className="relative mx-auto w-fit rounded-3xl border border-slate-800 bg-slate-950/80 p-3 sm:p-4 shadow-2xl backdrop-blur-md">
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+    <div
+      className="relative aspect-square rounded-xl border border-[#27272a] bg-[#111113] p-2 sm:p-3 max-h-full max-w-full flex items-center justify-center"
+      style={{
+        width: "min(100cqw, 100cqh)",
+        height: "min(100cqw, 100cqh)",
+        aspectRatio: "1 / 1",
+      }}
+    >
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full h-full">
         {game.board.map((cell, index) => (
           <Square
             value={cell}

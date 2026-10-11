@@ -123,12 +123,12 @@ export default function Dashboard() {
   const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
 
   const getRankBadge = () => {
-    if (totalGames === 0) return { title: "Unranked", color: "text-slate-400" };
+    if (totalGames === 0) return { title: "Unranked", color: "text-[#71717a]" };
     if (winRate >= 70 && totalGames >= 5)
       return { title: "Grandmaster", color: "text-amber-400" };
     if (winRate >= 50 && totalGames >= 3)
-      return { title: "Veteran Tactician", color: "text-indigo-400" };
-    return { title: "Challenger", color: "text-emerald-400" };
+      return { title: "Veteran Tactician", color: "text-[#22c55e]" };
+    return { title: "Challenger", color: "text-[#22c55e]" };
   };
 
   const rank = getRankBadge();
@@ -139,33 +139,24 @@ export default function Dashboard() {
 
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-10 px-4 py-8 sm:px-6 lg:px-8">
         {/* 1. Welcome / Hero */}
-        <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
-
+        <section className="relative overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
           <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
-                  </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-3 py-1 text-xs font-semibold text-[#22c55e]">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
                   Arena Online
                 </span>
-                <span className="rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1 text-xs font-medium text-slate-300">
+                <span className="rounded-full border border-[#27272a] bg-[#18181b] px-3 py-1 text-xs font-medium text-[#a1a1aa]">
                   Rank: <strong className={rank.color}>{rank.title}</strong>
                 </span>
               </div>
 
-              <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
-                Welcome back,{" "}
-                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  {user?.name || "Player"}
-                </span>
+              <h1 className="text-3xl font-black tracking-tight text-[#fafafa] sm:text-4xl lg:text-5xl">
+                Welcome back, {user?.name || "Player"}
               </h1>
 
-              <p className="max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
+              <p className="max-w-2xl text-sm leading-relaxed text-[#a1a1aa] sm:text-base">
                 Play live games now, challenge online rivals, and track your performance
                 as new titles join the arena.
               </p>
@@ -185,12 +176,12 @@ export default function Dashboard() {
         {/* 2. Player performance statistics */}
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold tracking-tight text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
               Your Performance
             </h2>
             <Link
               to="/profile"
-              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+              className="text-xs font-semibold text-[#fafafa] hover:underline"
             >
               Full stats & history →
             </Link>
@@ -206,27 +197,27 @@ export default function Dashboard() {
             />
           ) : (
             <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-              <div className="surface-card p-4 transition hover:border-slate-700 sm:p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <div className="surface-card p-4 transition sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#71717a]">
                   Matches
                 </p>
-                <p className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
+                <p className="mt-2 text-2xl font-extrabold text-[#fafafa] sm:text-3xl">
                   {totalGames}
                 </p>
-                <p className="mt-1 text-[11px] text-slate-500">Games played</p>
+                <p className="mt-1 text-[11px] text-[#71717a]">Games played</p>
               </div>
 
-              <div className="surface-card border-emerald-500/20 p-4 transition hover:border-emerald-500/40 sm:p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+              <div className="surface-card border-[#22c55e]/30 p-4 transition sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#22c55e]">
                   Victories
                 </p>
-                <p className="mt-2 text-2xl font-extrabold text-emerald-400 sm:text-3xl">
+                <p className="mt-2 text-2xl font-extrabold text-[#22c55e] sm:text-3xl">
                   {wins}
                 </p>
-                <p className="mt-1 text-[11px] text-emerald-500/80">Wins</p>
+                <p className="mt-1 text-[11px] text-[#22c55e]/80">Wins</p>
               </div>
 
-              <div className="surface-card border-rose-500/20 p-4 transition hover:border-rose-500/40 sm:p-5">
+              <div className="surface-card border-rose-500/30 p-4 transition sm:p-5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
                   Defeats
                 </p>
@@ -236,26 +227,26 @@ export default function Dashboard() {
                 <p className="mt-1 text-[11px] text-rose-500/80">Losses</p>
               </div>
 
-              <div className="surface-card border-amber-500/20 p-4 transition hover:border-amber-500/40 sm:p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+              <div className="surface-card border-[#3f3f46] p-4 transition sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#a1a1aa]">
                   Draws
                 </p>
-                <p className="mt-2 text-2xl font-extrabold text-amber-400 sm:text-3xl">
+                <p className="mt-2 text-2xl font-extrabold text-[#fafafa] sm:text-3xl">
                   {draws}
                 </p>
-                <p className="mt-1 text-[11px] text-amber-500/80">Stalemates</p>
+                <p className="mt-1 text-[11px] text-[#71717a]">Stalemates</p>
               </div>
 
-              <div className="col-span-2 surface-card border-indigo-500/20 p-4 transition hover:border-indigo-500/40 sm:col-span-3 sm:p-5 lg:col-span-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+              <div className="col-span-2 surface-card border-[#27272a] p-4 transition sm:col-span-3 sm:p-5 lg:col-span-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#22c55e]">
                   Win Rate
                 </p>
-                <p className="mt-2 text-2xl font-extrabold text-indigo-300 sm:text-3xl">
+                <p className="mt-2 text-2xl font-extrabold text-[#fafafa] sm:text-3xl">
                   {`${winRate.toFixed(1)}%`}
                 </p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full border border-[#27272a] bg-[#18181b]">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500"
+                    className="h-full rounded-full bg-[#22c55e] transition-all duration-500"
                     style={{ width: `${Math.min(winRate, 100)}%` }}
                   />
                 </div>
@@ -267,31 +258,31 @@ export default function Dashboard() {
         {/* 3. Featured playable game */}
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
               Playable Now
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-[#a1a1aa]">
               Jump into the featured live game — more titles are listed below as Coming Soon.
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/90 to-purple-950/40 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+          <div className="relative overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
             <div className="relative z-10 flex flex-col justify-between gap-8 md:flex-row md:items-center">
               <div className="max-w-xl space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-md bg-gradient-to-r from-indigo-600 to-pink-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-md">
+                  <span className="rounded-md border border-[#3f3f46] bg-[#18181b] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#fafafa]">
                     Featured Game
                   </span>
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+                  <span className="rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-2.5 py-0.5 text-xs font-semibold text-[#22c55e]">
                     Available
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  <h3 className="text-2xl font-black tracking-tight text-[#fafafa] sm:text-3xl">
                     Tic-Tac-Toe Arena
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                  <p className="mt-2 text-sm leading-relaxed text-[#a1a1aa]">
                     Challenge friends with private room codes or send an invite from the
                     online players list. Every match syncs in real time with rematch and
                     history tracking.
@@ -302,7 +293,7 @@ export default function Dashboard() {
                   {FEATURE_PILLS.map((feature) => (
                     <span
                       key={feature}
-                      className="rounded-lg border border-slate-700/60 bg-slate-800/80 px-2.5 py-1 text-xs text-slate-300"
+                      className="rounded-lg border border-[#27272a] bg-[#18181b] px-2.5 py-1 text-xs text-[#a1a1aa]"
                     >
                       {feature}
                     </span>
@@ -321,31 +312,31 @@ export default function Dashboard() {
               </div>
 
               <div className="flex justify-center md:justify-end">
-                <div className="relative rounded-2xl border border-indigo-500/30 bg-slate-950/80 p-4 shadow-2xl">
+                <div className="relative rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4">
                   <div className="grid h-48 w-48 grid-cols-3 gap-2">
-                    <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-2xl font-black text-cyan-400 shadow-inner">
+                    <div className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-2xl font-black text-[#5ab0e6]">
                       O
                     </div>
-                    <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-2xl font-black text-purple-400 shadow-inner">
+                    <div className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-2xl font-black text-[#7c6ee6]">
                       X
                     </div>
-                    <div className="rounded-xl border border-slate-800/50 bg-slate-900/50" />
-                    <div className="rounded-xl border border-slate-800/50 bg-slate-900/50" />
-                    <div className="flex items-center justify-center rounded-xl border border-indigo-500/40 bg-slate-900 text-2xl font-black text-cyan-400 shadow-lg shadow-cyan-500/20 animate-pulse">
+                    <div className="rounded-lg border border-[#27272a]/50 bg-[#111113]/50" />
+                    <div className="rounded-lg border border-[#27272a]/50 bg-[#111113]/50" />
+                    <div className="flex items-center justify-center rounded-lg border border-[#22c55e] bg-[#111113] text-2xl font-black text-[#5ab0e6]">
                       O
                     </div>
-                    <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-2xl font-black text-purple-400 shadow-inner">
+                    <div className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-2xl font-black text-[#7c6ee6]">
                       X
                     </div>
-                    <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-2xl font-black text-purple-400 shadow-inner">
+                    <div className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-2xl font-black text-[#7c6ee6]">
                       X
                     </div>
-                    <div className="rounded-xl border border-slate-800/50 bg-slate-900/50" />
-                    <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-2xl font-black text-cyan-400 shadow-inner">
+                    <div className="rounded-lg border border-[#27272a]/50 bg-[#111113]/50" />
+                    <div className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-2xl font-black text-[#5ab0e6]">
                       O
                     </div>
                   </div>
-                  <p className="mt-3 text-center font-mono text-[11px] text-indigo-300">
+                  <p className="mt-3 text-center font-mono text-[11px] text-[#71717a]">
                     LIVE ARENA • 1v1 MATCH
                   </p>
                 </div>
@@ -365,10 +356,10 @@ export default function Dashboard() {
         <section className="space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white">
+              <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
                 Coming Soon
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-[#a1a1aa]">
                 Games you can look forward to — not playable yet.
               </p>
             </div>
@@ -381,11 +372,11 @@ export default function Dashboard() {
             {UPCOMING_GAMES.map((game) => (
               <article
                 key={game.id}
-                className="surface-card group relative flex flex-col justify-between overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:border-slate-700"
+                className="surface-card flex flex-col justify-between overflow-hidden p-5"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800/80 font-display text-xs font-bold text-indigo-300 shadow-inner transition-transform group-hover:scale-110">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] font-display text-xs font-bold text-[#fafafa]">
                       {game.iconLabel}
                     </div>
                     <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400">
@@ -394,18 +385,18 @@ export default function Dashboard() {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white transition-colors group-hover:text-indigo-300">
+                    <h3 className="text-base font-bold text-[#fafafa]">
                       {game.title}
                     </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                    <p className="mt-1 text-xs leading-relaxed text-[#a1a1aa]">
                       {game.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center justify-between border-t border-slate-800/60 pt-3 text-xs text-slate-500">
+                <div className="mt-5 flex items-center justify-between border-t border-[#27272a] pt-3 text-xs text-[#71717a]">
                   <span>{game.players}</span>
-                  <span className="font-medium">{game.category}</span>
+                  <span className="font-medium text-[#a1a1aa]">{game.category}</span>
                 </div>
               </article>
             ))}
@@ -415,40 +406,34 @@ export default function Dashboard() {
         {/* 6. Platform info — compact leaderboard preview */}
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold tracking-tight text-white">
+            <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
               Arena Standings
             </h2>
-            {/* <Link
-              to="/leaderboard"
-              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
-            >
-              Full leaderboard →
-            </Link> */}
           </div>
           <LeaderboardPreview />
         </section>
       </main>
 
-      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950/60 py-6 text-center text-xs text-slate-500">
+      <footer className="mt-auto border-t border-[#27272a] bg-[#0a0a0b] py-6 text-center text-xs text-[#71717a]">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
           <div className="flex items-center gap-2">
-            <span className="font-display font-bold tracking-wider text-slate-400">
+            <span className="font-display font-bold tracking-wider text-[#fafafa]">
               PLAYHUB
             </span>
             <span>• Multiplayer Arena</span>
           </div>
 
           <div className="flex items-center gap-4 text-xs">
-            <Link to="/dashboard" className="hover:text-slate-300">
+            <Link to="/dashboard" className="text-[#71717a] hover:text-[#fafafa]">
               Dashboard
             </Link>
-            <Link to="/game" className="hover:text-slate-300">
+            <Link to="/game" className="text-[#71717a] hover:text-[#fafafa]">
               Play Game
             </Link>
-            <Link to="/leaderboard" className="hover:text-slate-300">
+            <Link to="/leaderboard" className="text-[#71717a] hover:text-[#fafafa]">
               Leaderboard
             </Link>
-            <Link to="/profile" className="hover:text-slate-300">
+            <Link to="/profile" className="text-[#71717a] hover:text-[#fafafa]">
               Profile
             </Link>
           </div>

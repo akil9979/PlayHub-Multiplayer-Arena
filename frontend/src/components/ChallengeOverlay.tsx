@@ -205,14 +205,14 @@ export default function ChallengeOverlay() {
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 max-w-sm animate-bounce-short">
           <div
-            className={`flex items-start gap-3 rounded-2xl border p-4 shadow-2xl backdrop-blur-xl ${
+            className={`flex items-start gap-3 rounded-xl border p-4 bg-[#111113] ${
               toastMessage.type === "success"
-                ? "border-emerald-500/40 bg-slate-900/95 text-emerald-300 shadow-emerald-500/10"
+                ? "border-emerald-500/40 text-emerald-300"
                 : toastMessage.type === "error"
-                  ? "border-rose-500/40 bg-slate-900/95 text-rose-300 shadow-rose-500/10"
+                  ? "border-red-500/40 text-red-300"
                   : toastMessage.type === "warning"
-                    ? "border-amber-500/40 bg-slate-900/95 text-amber-300 shadow-amber-500/10"
-                    : "border-indigo-500/40 bg-slate-900/95 text-indigo-300 shadow-indigo-500/10"
+                    ? "border-amber-500/40 text-amber-300"
+                    : "border-[#27272a] text-[#fafafa]"
             }`}
           >
             <span className="text-xl">
@@ -225,13 +225,13 @@ export default function ChallengeOverlay() {
               <h4 className="text-sm font-bold text-white">
                 {toastMessage.title}
               </h4>
-              <p className="mt-0.5 text-xs text-slate-300 leading-snug">
+              <p className="mt-0.5 text-xs text-zinc-400 leading-snug">
                 {toastMessage.description}
               </p>
             </div>
             <button
               onClick={() => setToastMessage(null)}
-              className="text-slate-400 hover:text-white transition"
+              className="text-zinc-500 hover:text-white transition-colors"
               aria-label="Close notification"
             >
               ✕
@@ -242,47 +242,40 @@ export default function ChallengeOverlay() {
 
       {/* INCOMING CHALLENGE MODAL */}
       {incomingChallenge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-indigo-500/40 bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950/60 p-6 sm:p-8 shadow-2xl shadow-indigo-500/20">
-            {/* Ambient decorative glow */}
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-purple-500/20 blur-3xl" />
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/80 p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
             <div className="relative z-10 space-y-5 text-center">
-              {/* Pulsing Avatar */}
-              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-25"></span>
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-2xl font-black text-white shadow-xl shadow-indigo-500/30">
-                  {incomingChallenge.challenger.name
-                    ? incomingChallenge.challenger.name.charAt(0).toUpperCase()
-                    : "P"}
-                </div>
+              {/* Flat Avatar */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#27272a] border border-[#3f3f46] text-2xl font-bold text-white">
+                {incomingChallenge.challenger.name
+                  ? incomingChallenge.challenger.name.charAt(0).toUpperCase()
+                  : "P"}
               </div>
 
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-                  <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   Incoming Challenge
                 </span>
                 <h3 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
                   {incomingChallenge.challenger.name}
                 </h3>
-                <p className="mt-1 text-xs sm:text-sm text-slate-300">
+                <p className="mt-1 text-xs sm:text-sm text-zinc-400">
                   has challenged you to a 1v1 Tic-Tac-Toe Arena match!
                 </p>
               </div>
 
               {/* Expiry Progress Indicator */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] text-slate-400">
+                <div className="flex justify-between text-[11px] text-zinc-400">
                   <span>Auto-declines in</span>
-                  <span className="font-mono font-bold text-indigo-400">
+                  <span className="font-mono font-bold text-emerald-400">
                     {countdown}s
                   </span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#27272a]">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 transition-all duration-1000 ease-linear"
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-linear"
                     style={{ width: `${(countdown / 30) * 100}%` }}
                   />
                 </div>
@@ -293,18 +286,18 @@ export default function ChallengeOverlay() {
                 <button
                   onClick={handleDecline}
                   disabled={isAccepting}
-                  className="rounded-xl border border-slate-700 bg-slate-800/90 py-3 text-xs font-bold text-slate-300 transition hover:border-slate-600 hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-50"
+                  className="rounded-lg border border-[#3f3f46] bg-[#27272a] py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#3f3f46] disabled:opacity-50"
                 >
                   Decline
                 </button>
                 <button
                   onClick={handleAccept}
                   disabled={isAccepting}
-                  className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 py-3 text-xs font-extrabold text-white shadow-lg shadow-emerald-500/25 transition hover:scale-[1.02] hover:shadow-emerald-500/40 active:scale-95 disabled:opacity-50"
+                  className="rounded-lg bg-[#22c55e] py-2.5 text-xs font-semibold text-[#052e16] transition-colors hover:bg-[#16a34a] disabled:opacity-50"
                 >
                   {isAccepting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#052e16] border-t-transparent" />
                       Entering...
                     </span>
                   ) : (
@@ -319,29 +312,23 @@ export default function ChallengeOverlay() {
 
       {/* OUTGOING CHALLENGE WAITING MODAL */}
       {outgoingChallenge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-purple-500/40 bg-gradient-to-b from-slate-900 via-slate-900 to-purple-950/60 p-6 sm:p-8 shadow-2xl shadow-purple-500/20">
-            {/* Ambient decorative glow */}
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-purple-500/20 blur-3xl" />
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/80 p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
             <div className="relative z-10 space-y-5 text-center">
-              {/* Radar pulse */}
-              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-25"></span>
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 text-2xl font-black text-white shadow-xl shadow-purple-500/30">
-                  ⚔️
-                </div>
+              {/* Flat Icon */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#27272a] border border-[#3f3f46] text-2xl font-bold text-white">
+                ⚔️
               </div>
 
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300">
-                  <span className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   Challenge Sent
                 </span>
                 <h3 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
                   Waiting for {outgoingChallenge.target.name}
                 </h3>
-                <p className="mt-1 text-xs sm:text-sm text-slate-300">
+                <p className="mt-1 text-xs sm:text-sm text-zinc-400">
                   Invitation delivered! Match will automatically start once
                   accepted.
                 </p>
@@ -351,7 +338,7 @@ export default function ChallengeOverlay() {
               <div className="pt-2">
                 <button
                   onClick={handleCancelOutgoing}
-                  className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-6 py-2.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/20 active:scale-95"
+                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-6 py-2.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20"
                 >
                   Cancel Challenge
                 </button>

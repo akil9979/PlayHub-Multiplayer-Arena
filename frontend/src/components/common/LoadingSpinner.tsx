@@ -20,11 +20,11 @@ export default function LoadingSpinner({
   const spinner = (
     <div className={`flex flex-col items-center justify-center gap-2.5 ${className}`}>
       <div
-        className={`${sizeClasses} animate-spin rounded-full border-indigo-500 border-t-transparent shadow-lg shadow-indigo-500/20`}
+        className={`${sizeClasses} animate-spin rounded-full border-[#22c55e] border-t-transparent`}
         role="status"
         aria-label={label || "Loading"}
       />
-      {label && <p className="text-xs font-medium text-slate-400">{label}</p>}
+      {label && <p className="text-xs font-medium text-zinc-400">{label}</p>}
     </div>
   );
 

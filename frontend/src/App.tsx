@@ -21,13 +21,13 @@ function AuthLoadingScreen() {
     <div className="page-shell flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-3 text-center">
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[#22c55e] border-t-transparent"
           aria-hidden
         />
-        <p className="font-display text-sm font-semibold tracking-wider text-indigo-300">
+        <p className="font-display text-sm font-semibold tracking-wider text-[#22c55e]">
           PLAYHUB
         </p>
-        <p className="text-sm text-slate-400">Checking authentication...</p>
+        <p className="text-sm text-zinc-400">Checking authentication...</p>
       </div>
     </div>
   );

@@ -48,21 +48,21 @@ export default function EmptyState({
         {title}
       </h2>
       {description && (
-        <p className="max-w-md text-sm text-slate-400">
+        <p className="max-w-md text-sm text-zinc-400">
           {description}
         </p>
       )}
       {action ? (
         <Link
           to={action.to}
-          className="mt-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
+          className="mt-2 rounded-lg bg-[#22c55e] px-4 py-2 text-xs font-semibold text-[#052e16] transition-colors hover:bg-[#16a34a]"
         >
           {action.label}
         </Link>
       ) : onAction ? (
         <button
           onClick={onAction}
-          className="mt-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
+          className="mt-2 rounded-lg bg-[#22c55e] px-4 py-2 text-xs font-semibold text-[#052e16] transition-colors hover:bg-[#16a34a]"
         >
           {actionLabel}
         </button>

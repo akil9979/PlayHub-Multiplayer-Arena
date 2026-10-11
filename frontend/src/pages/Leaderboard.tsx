@@ -51,43 +51,42 @@ export default function Leaderboard() {
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 w-full flex-1 space-y-8">
         {/* Header Banner */}
-        <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900/90 to-purple-950/40 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
-          <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/10 to-pink-500/10 blur-3xl pointer-events-none"></div>
+        <section className="relative overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-10">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-3 py-1 text-xs font-semibold text-[#22c55e]">
                 <span>🏆</span>
                 <span>Official PlayHub Rankings</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#fafafa]">
                 Global Arena Leaderboard
               </h1>
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#a1a1aa] leading-relaxed">
                 Rankings calculated live from completed competitive matches. Rise through the ranks by outsmarting opponents in 1v1 turn-based combat.
               </p>
             </div>
 
             {/* Quick User Standing Card */}
             {currentUser && (
-              <div className="flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 shadow-xl backdrop-blur-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-lg font-black text-white shadow-md">
+              <div className="flex items-center gap-4 rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[#3f3f46] bg-[#18181b] text-lg font-black text-[#fafafa]">
                   {currentUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-white">{currentUser.name}</p>
-                    <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300">
+                    <p className="text-sm font-bold text-[#fafafa]">{currentUser.name}</p>
+                    <span className="rounded-full bg-[#22c55e]/20 border border-[#22c55e]/30 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-[#22c55e]">
                       YOU
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[#a1a1aa] mt-0.5">
                     {currentUserRank > 0 ? (
                       <span>
                         Current Rank:{" "}
-                        <strong className="text-indigo-400">#{currentUserRank}</strong> of {leaderboard.length}
+                        <strong className="text-[#22c55e]">#{currentUserRank}</strong> of {leaderboard.length}
                       </span>
                     ) : (
-                      <span className="text-amber-400/90">Play a match to earn a rank!</span>
+                      <span className="text-amber-400">Play a match to earn a rank!</span>
                     )}
                   </p>
                 </div>
@@ -100,7 +99,7 @@ export default function Leaderboard() {
         {!isLoading && !error && topThree.length >= 2 && (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold tracking-tight text-[#fafafa] flex items-center gap-2">
                 <span>👑 Champions Podium</span>
               </h2>
             </div>
@@ -109,49 +108,47 @@ export default function Leaderboard() {
               {/* 2nd Place */}
               {topThree[1] && (
                 <div
-                  className={`order-2 sm:order-1 relative rounded-2xl border p-5 backdrop-blur-md transition-all duration-200 hover:scale-[1.01] ${
-                    currentUser?.id === topThree[1].userId
-                      ? "border-slate-400/60 bg-gradient-to-b from-slate-800/80 to-slate-900/90 shadow-lg shadow-slate-400/10 ring-2 ring-indigo-500/50"
-                      : "border-slate-700/60 bg-gradient-to-b from-slate-900/90 to-slate-950/90"
+                  className={`order-2 sm:order-1 relative rounded-xl border border-zinc-600/50 bg-[#111113] p-5 transition-colors ${
+                    currentUser?.id === topThree[1].userId ? "ring-1 ring-[#22c55e]" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-300 to-slate-500 text-lg font-black text-slate-950 shadow-md">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-zinc-500 bg-[#18181b] text-lg font-black text-zinc-300">
                         {topThree[1].name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-slate-100 text-base">{topThree[1].name}</h3>
+                          <h3 className="font-bold text-[#fafafa] text-base">{topThree[1].name}</h3>
                           {currentUser?.id === topThree[1].userId && (
-                            <span className="rounded bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300">
+                            <span className="rounded-full bg-[#22c55e]/20 px-1.5 py-0.2 text-[9px] font-bold text-[#22c55e]">
                               YOU
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">{topThree[1].gamesPlayed} Matches</p>
+                        <p className="text-xs text-[#a1a1aa]">{topThree[1].gamesPlayed} Matches</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-2xl">🥈</span>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-300">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-300">
                         2nd Rank
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/60 pt-3 text-center">
+                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[#27272a] pt-3 text-center">
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Wins</p>
-                      <p className="text-sm font-extrabold text-emerald-400">{topThree[1].wins}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Wins</p>
+                      <p className="text-sm font-extrabold text-[#22c55e]">{topThree[1].wins}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Defeats</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Defeats</p>
                       <p className="text-sm font-extrabold text-rose-400">{topThree[1].losses}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Win Rate</p>
-                      <p className="text-sm font-extrabold text-cyan-400">{topThree[1].winRate}%</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Win Rate</p>
+                      <p className="text-sm font-extrabold text-[#fafafa]">{topThree[1].winRate}%</p>
                     </div>
                   </div>
                 </div>
@@ -160,31 +157,29 @@ export default function Leaderboard() {
               {/* 1st Place - Crown Champion */}
               {topThree[0] && (
                 <div
-                  className={`order-1 sm:order-2 relative -mt-0 sm:-mt-3 rounded-2xl border p-6 backdrop-blur-md transition-all duration-200 hover:scale-[1.02] ${
-                    currentUser?.id === topThree[0].userId
-                      ? "border-amber-400/80 bg-gradient-to-b from-amber-500/20 via-slate-900/90 to-slate-950/90 shadow-xl shadow-amber-500/20 ring-2 ring-amber-400"
-                      : "border-amber-500/50 bg-gradient-to-b from-amber-500/10 via-slate-900/90 to-slate-950/90 shadow-xl shadow-amber-500/10"
+                  className={`order-1 sm:order-2 relative -mt-0 sm:-mt-3 rounded-xl border border-amber-500/50 bg-[#111113] p-6 transition-colors ${
+                    currentUser?.id === topThree[0].userId ? "ring-1 ring-[#22c55e]" : ""
                   }`}
                 >
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-md">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
                     👑 Grand Champion
                   </div>
 
                   <div className="flex items-start justify-between mt-1">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-300 via-amber-400 to-yellow-500 text-xl font-black text-slate-950 shadow-lg shadow-amber-500/30">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-amber-500 bg-[#18181b] text-xl font-black text-amber-400">
                         {topThree[0].name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-extrabold text-white text-lg">{topThree[0].name}</h3>
+                          <h3 className="font-extrabold text-[#fafafa] text-lg">{topThree[0].name}</h3>
                           {currentUser?.id === topThree[0].userId && (
-                            <span className="rounded bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300">
+                            <span className="rounded-full bg-[#22c55e]/20 px-1.5 py-0.2 text-[9px] font-bold text-[#22c55e]">
                               YOU
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-amber-300/80">{topThree[0].gamesPlayed} Matches</p>
+                        <p className="text-xs text-amber-400/80">{topThree[0].gamesPlayed} Matches</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
@@ -195,18 +190,18 @@ export default function Leaderboard() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-amber-500/20 pt-3 text-center">
+                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[#27272a] pt-3 text-center">
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Wins</p>
-                      <p className="text-base font-black text-emerald-400">{topThree[0].wins}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Wins</p>
+                      <p className="text-base font-black text-[#22c55e]">{topThree[0].wins}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Defeats</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Defeats</p>
                       <p className="text-base font-black text-rose-400">{topThree[0].losses}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Win Rate</p>
-                      <p className="text-base font-black text-amber-300">{topThree[0].winRate}%</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Win Rate</p>
+                      <p className="text-base font-black text-amber-400">{topThree[0].winRate}%</p>
                     </div>
                   </div>
                 </div>
@@ -215,49 +210,47 @@ export default function Leaderboard() {
               {/* 3rd Place */}
               {topThree[2] && (
                 <div
-                  className={`order-3 relative rounded-2xl border p-5 backdrop-blur-md transition-all duration-200 hover:scale-[1.01] ${
-                    currentUser?.id === topThree[2].userId
-                      ? "border-amber-700/70 bg-gradient-to-b from-amber-900/30 to-slate-950/90 shadow-lg shadow-amber-800/10 ring-2 ring-indigo-500/50"
-                      : "border-amber-800/40 bg-gradient-to-b from-slate-900/90 to-slate-950/90"
+                  className={`order-3 relative rounded-xl border border-amber-700/50 bg-[#111113] p-5 transition-colors ${
+                    currentUser?.id === topThree[2].userId ? "ring-1 ring-[#22c55e]" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-800 text-lg font-black text-white shadow-md">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-amber-700 bg-[#18181b] text-lg font-black text-amber-600">
                         {topThree[2].name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-slate-100 text-base">{topThree[2].name}</h3>
+                          <h3 className="font-bold text-[#fafafa] text-base">{topThree[2].name}</h3>
                           {currentUser?.id === topThree[2].userId && (
-                            <span className="rounded bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300">
+                            <span className="rounded-full bg-[#22c55e]/20 px-1.5 py-0.2 text-[9px] font-bold text-[#22c55e]">
                               YOU
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">{topThree[2].gamesPlayed} Matches</p>
+                        <p className="text-xs text-[#a1a1aa]">{topThree[2].gamesPlayed} Matches</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-2xl">🥉</span>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-500">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-600">
                         3rd Rank
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/60 pt-3 text-center">
+                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[#27272a] pt-3 text-center">
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Wins</p>
-                      <p className="text-sm font-extrabold text-emerald-400">{topThree[2].wins}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Wins</p>
+                      <p className="text-sm font-extrabold text-[#22c55e]">{topThree[2].wins}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Defeats</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Defeats</p>
                       <p className="text-sm font-extrabold text-rose-400">{topThree[2].losses}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Win Rate</p>
-                      <p className="text-sm font-extrabold text-cyan-400">{topThree[2].winRate}%</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#71717a]">Win Rate</p>
+                      <p className="text-sm font-extrabold text-[#fafafa]">{topThree[2].winRate}%</p>
                     </div>
                   </div>
                 </div>
@@ -270,13 +263,13 @@ export default function Leaderboard() {
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold tracking-tight text-[#fafafa] flex items-center gap-2">
                 <span>⚔️ Complete Player Standings</span>
-                <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-400">
+                <span className="rounded-full border border-[#27272a] bg-[#18181b] px-2.5 py-0.5 text-xs font-semibold text-[#a1a1aa]">
                   {leaderboard.length} {leaderboard.length === 1 ? "Player" : "Players"}
                 </span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#a1a1aa] mt-0.5">
                 Sorted primarily by Victories, followed by Win Rate and total Games Played.
               </p>
             </div>
@@ -289,10 +282,10 @@ export default function Leaderboard() {
                   placeholder="Search player name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-48 sm:w-64 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 pl-9 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                  className="w-48 sm:w-64 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 py-2 pl-9 text-xs text-[#fafafa] placeholder-[#71717a] focus:border-[#22c55e] focus:outline-none focus:ring-2 focus:ring-[#22c55e] transition"
                 />
                 <svg
-                  className="absolute left-3 top-2.5 h-4 w-4 text-slate-500"
+                  className="absolute left-3 top-2.5 h-4 w-4 text-[#71717a]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -310,10 +303,10 @@ export default function Leaderboard() {
                 onClick={fetchLeaderboard}
                 disabled={isLoading}
                 title="Refresh Standings"
-                className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white hover:border-slate-700 transition disabled:opacity-50"
+                className="flex items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] p-2 text-[#a1a1aa] hover:text-[#fafafa] hover:border-[#3f3f46] transition disabled:opacity-50"
               >
                 <svg
-                  className={`h-4 w-4 ${isLoading ? "animate-spin text-indigo-400" : ""}`}
+                  className={`h-4 w-4 ${isLoading ? "animate-spin text-[#22c55e]" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -365,11 +358,11 @@ export default function Leaderboard() {
                 description={`No leaderboard entries match “${searchQuery}”. Try a different search.`}
               />
             ) : (
-            <div className="overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl">
+            <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#111113]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/60 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <tr className="border-b border-[#27272a] bg-[#0a0a0b] text-[11px] font-bold uppercase tracking-wider text-[#a1a1aa]">
                       <th className="py-4 pl-6 pr-3 text-center w-20">Rank</th>
                       <th className="py-4 px-4">Player</th>
                       <th className="py-4 px-4 text-center">Matches</th>
@@ -379,7 +372,7 @@ export default function Leaderboard() {
                       <th className="py-4 pl-4 pr-6 text-right">Win Rate</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50 text-sm">
+                  <tbody className="divide-y divide-[#27272a] text-sm">
                     {filteredLeaderboard.map((player) => {
                       const rank = leaderboard.findIndex((p) => p.userId === player.userId) + 1;
                       const isCurrentUser = currentUser?.id === player.userId;
@@ -387,34 +380,28 @@ export default function Leaderboard() {
                       return (
                         <tr
                           key={player.userId}
-                          className={`transition-colors duration-150 ${
+                          className={`transition-colors ${
                             isCurrentUser
-                              ? "bg-indigo-600/15 border-l-4 border-l-indigo-500 hover:bg-indigo-600/25"
-                              : rank === 1
-                              ? "bg-amber-500/5 hover:bg-amber-500/10"
-                              : rank === 2
-                              ? "bg-slate-300/5 hover:bg-slate-300/10"
-                              : rank === 3
-                              ? "bg-amber-700/5 hover:bg-amber-700/10"
-                              : "hover:bg-slate-800/50"
+                              ? "bg-[#22c55e]/10 border-l-2 border-l-[#22c55e] hover:bg-[#22c55e]/15"
+                              : "hover:bg-[#18181b]"
                           }`}
                         >
                           {/* Rank */}
                           <td className="py-4 pl-6 pr-3 text-center font-bold">
                             {rank === 1 ? (
-                              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20">
+                              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full border border-amber-500/50 bg-amber-500/10 text-amber-400 text-xs font-bold">
                                 🥇 1
                               </span>
                             ) : rank === 2 ? (
-                              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-tr from-slate-300 to-slate-400 text-slate-950 text-xs font-black shadow-md">
+                              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full border border-zinc-500/50 bg-zinc-500/10 text-zinc-300 text-xs font-bold">
                                 🥈 2
                               </span>
                             ) : rank === 3 ? (
-                              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-tr from-amber-600 to-amber-700 text-white text-xs font-black shadow-md">
+                              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full border border-amber-700/50 bg-amber-700/10 text-amber-600 text-xs font-bold">
                                 🥉 3
                               </span>
                             ) : (
-                              <span className="text-slate-400 text-xs font-mono">#{rank}</span>
+                              <span className="text-[#71717a] text-xs font-mono">#{rank}</span>
                             )}
                           </td>
 
@@ -422,16 +409,16 @@ export default function Leaderboard() {
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
                               <div
-                                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black shadow-inner ${
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
                                   rank === 1
-                                    ? "bg-gradient-to-tr from-amber-400 to-yellow-500 text-slate-950 font-black"
+                                    ? "border border-amber-500/50 bg-[#18181b] text-amber-400"
                                     : rank === 2
-                                    ? "bg-gradient-to-tr from-slate-300 to-slate-400 text-slate-950"
+                                    ? "border border-zinc-500/50 bg-[#18181b] text-zinc-300"
                                     : rank === 3
-                                    ? "bg-gradient-to-tr from-amber-600 to-amber-700 text-white"
+                                    ? "border border-amber-700/50 bg-[#18181b] text-amber-600"
                                     : isCurrentUser
-                                    ? "bg-gradient-to-tr from-indigo-500 to-purple-600 text-white"
-                                    : "bg-slate-800 text-slate-300"
+                                    ? "border border-[#22c55e]/50 bg-[#18181b] text-[#22c55e]"
+                                    : "border border-[#27272a] bg-[#18181b] text-[#fafafa]"
                                 }`}
                               >
                                 {player.name ? player.name.charAt(0).toUpperCase() : "U"}
@@ -441,32 +428,32 @@ export default function Leaderboard() {
                                   <span
                                     className={`font-bold ${
                                       isCurrentUser
-                                        ? "text-indigo-300"
+                                        ? "text-[#22c55e]"
                                         : rank === 1
-                                        ? "text-amber-300"
-                                        : "text-slate-100"
+                                        ? "text-amber-400"
+                                        : "text-[#fafafa]"
                                     }`}
                                   >
                                     {player.name}
                                   </span>
                                   {isCurrentUser && (
-                                    <span className="rounded-md bg-indigo-500/30 border border-indigo-500/40 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-indigo-300">
+                                    <span className="rounded-full bg-[#22c55e]/20 border border-[#22c55e]/30 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#22c55e]">
                                       YOU
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[10px] text-slate-500">ID: #{player.userId}</span>
+                                <span className="text-[10px] text-[#71717a]">ID: #{player.userId}</span>
                               </div>
                             </div>
                           </td>
 
                           {/* Games Played */}
-                          <td className="py-4 px-4 text-center font-semibold text-slate-300">
+                          <td className="py-4 px-4 text-center font-semibold text-[#fafafa]">
                             {player.gamesPlayed}
                           </td>
 
                           {/* Wins */}
-                          <td className="py-4 px-4 text-center font-extrabold text-emerald-400">
+                          <td className="py-4 px-4 text-center font-extrabold text-[#22c55e]">
                             {player.wins}
                           </td>
 
@@ -476,7 +463,7 @@ export default function Leaderboard() {
                           </td>
 
                           {/* Draws */}
-                          <td className="py-4 px-4 text-center font-medium text-slate-400">
+                          <td className="py-4 px-4 text-center font-medium text-[#71717a]">
                             {player.draws}
                           </td>
 
@@ -486,23 +473,15 @@ export default function Leaderboard() {
                               <span
                                 className={`font-black ${
                                   player.winRate >= 70
-                                    ? "text-emerald-400"
-                                    : player.winRate >= 45
-                                    ? "text-cyan-400"
-                                    : "text-slate-300"
+                                    ? "text-[#22c55e]"
+                                    : "text-[#fafafa]"
                                 }`}
                               >
                                 {player.winRate}%
                               </span>
-                              <div className="h-1.5 w-20 rounded-full bg-slate-800 overflow-hidden">
+                              <div className="h-1.5 w-20 rounded-full border border-[#27272a] bg-[#18181b] overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${
-                                    player.winRate >= 70
-                                      ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-                                      : player.winRate >= 45
-                                      ? "bg-gradient-to-r from-indigo-500 to-cyan-400"
-                                      : "bg-gradient-to-r from-slate-600 to-slate-400"
-                                  }`}
+                                  className="h-full rounded-full bg-[#22c55e]"
                                   style={{ width: `${Math.min(player.winRate, 100)}%` }}
                                 ></div>
                               </div>
@@ -517,13 +496,13 @@ export default function Leaderboard() {
                         <td colSpan={7} className="py-10 text-center">
                           <div className="flex flex-col items-center justify-center gap-2">
                             <span className="text-xl">🔍</span>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-[#a1a1aa]">
                               No players matching &ldquo;{searchQuery}&rdquo;
                             </p>
                             <button
                               type="button"
                               onClick={() => setSearchQuery("")}
-                              className="mt-1 rounded-lg bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 text-xs font-semibold text-indigo-300 hover:bg-indigo-600/30 hover:text-white transition"
+                              className="mt-1 rounded-lg border border-[#27272a] bg-[#18181b] px-3 py-1 text-xs font-semibold text-[#fafafa] hover:bg-[#27272a] transition"
                             >
                               Clear Search
                             </button>

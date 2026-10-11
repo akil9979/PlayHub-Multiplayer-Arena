@@ -19,10 +19,10 @@ export default function ErrorMessage({
     return (
       <div
         role="alert"
-        className={`flex items-center justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-300 ${className}`}
+        className={`flex items-center justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-xs text-red-300 ${className}`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="flex-shrink-0 text-rose-400">⚠️</span>
+          <span className="flex-shrink-0 text-red-400">⚠️</span>
           <span className="truncate">{message}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -30,7 +30,7 @@ export default function ErrorMessage({
             <button
               type="button"
               onClick={onRetry}
-              className="rounded-lg bg-rose-500/20 px-2 py-1 text-[11px] font-bold text-rose-200 transition hover:bg-rose-500/30 active:scale-95"
+              className="rounded-lg bg-red-500/20 px-2 py-1 text-[11px] font-semibold text-red-200 transition-colors hover:bg-red-500/30"
             >
               Retry
             </button>
@@ -40,7 +40,7 @@ export default function ErrorMessage({
               type="button"
               onClick={onDismiss}
               aria-label="Dismiss error"
-              className="text-rose-400 hover:text-white transition"
+              className="text-red-400 hover:text-white transition-colors"
             >
               ✕
             </button>
@@ -53,13 +53,13 @@ export default function ErrorMessage({
   return (
     <div
       role="alert"
-      className={`rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center backdrop-blur-sm ${className}`}
+      className={`rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center ${className}`}
     >
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-2xl text-rose-400 shadow-lg shadow-rose-500/10">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/20 text-2xl text-red-400">
         ⚠️
       </div>
       <h3 className="mt-3 text-base font-bold text-white">{title}</h3>
-      <p className="mx-auto mt-1 max-w-md text-xs text-rose-300 leading-relaxed">
+      <p className="mx-auto mt-1 max-w-md text-xs text-red-300 leading-relaxed">
         {message}
       </p>
 
@@ -69,7 +69,7 @@ export default function ErrorMessage({
             <button
               type="button"
               onClick={onRetry}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-rose-600/20 transition hover:bg-rose-500 active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500"
             >
               <span>🔄</span>
               <span>Retry</span>
@@ -79,7 +79,7 @@ export default function ErrorMessage({
             <button
               type="button"
               onClick={onDismiss}
-              className="rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-700"
+              className="rounded-lg border border-[#3f3f46] bg-[#27272a] px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-[#3f3f46] hover:text-white"
             >
               Dismiss
             </button>

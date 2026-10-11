@@ -50,20 +50,17 @@ function Login() {
       <Navbar variant="public" />
 
       <main className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.15),_transparent_55%)]" />
-
-        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl backdrop-blur-xl lg:grid-cols-2">
+        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] lg:grid-cols-2">
           {/* Brand panel */}
-          <aside className="relative hidden overflow-hidden border-r border-slate-800 bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-950 p-10 lg:flex lg:flex-col lg:justify-between">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
+          <aside className="relative hidden overflow-hidden border-r border-[#27272a] bg-[#0a0a0b] p-10 lg:flex lg:flex-col lg:justify-between">
             <div>
-              <p className="font-display text-sm font-bold tracking-[0.3em] text-indigo-400">
+              <p className="font-display text-sm font-bold tracking-[0.3em] text-emerald-400">
                 PLAYHUB
               </p>
               <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
                 Welcome back to the arena
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
                 Sign in to challenge online players, join private rooms, and keep
                 climbing the leaderboard.
               </p>
@@ -73,8 +70,8 @@ function Login() {
               {["X", "O", "", "O", "X", "", "", "O", "X"].map((cell, i) => (
                 <div
                   key={i}
-                  className={`flex aspect-square items-center justify-center rounded-lg border border-slate-800 bg-slate-950/80 text-lg font-black ${
-                    cell === "X" ? "text-purple-400" : cell === "O" ? "text-cyan-400" : ""
+                  className={`flex aspect-square items-center justify-center rounded-lg border border-[#27272a] bg-[#111113] text-lg font-black ${
+                    cell === "X" ? "text-[#7c6ee6]" : cell === "O" ? "text-[#5ab0e6]" : ""
                   }`}
                 >
                   {cell}
@@ -82,7 +79,7 @@ function Login() {
               ))}
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               Real-time multiplayer • Private rooms • Competitive ranks
             </p>
           </aside>
@@ -90,7 +87,7 @@ function Login() {
           {/* Form */}
           <section className="animate-fade-in flex flex-col justify-center p-6 sm:p-10">
             <div className="mb-8 space-y-2 lg:hidden">
-              <p className="font-display text-sm font-bold tracking-[0.3em] text-indigo-400">
+              <p className="font-display text-sm font-bold tracking-[0.3em] text-emerald-400">
                 PLAYHUB
               </p>
               <h1 className="text-2xl font-extrabold text-white">Welcome back</h1>
@@ -98,7 +95,7 @@ function Login() {
 
             <div className="mb-6 hidden lg:block">
               <h2 className="text-2xl font-extrabold text-white">Login</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-zinc-400">
                 Enter your credentials to continue.
               </p>
             </div>
@@ -107,7 +104,7 @@ function Login() {
               {error && <ErrorMessage compact message={error} onDismiss={() => setError(null)} />}
 
               <div className="space-y-2">
-                <label htmlFor="login-email" className="text-sm font-medium text-slate-300">
+                <label htmlFor="login-email" className="text-sm font-medium text-zinc-300">
                   Email
                 </label>
                 <input
@@ -124,7 +121,7 @@ function Login() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="login-password" className="text-sm font-medium text-slate-300">
+                <label htmlFor="login-password" className="text-sm font-medium text-zinc-300">
                   Password
                 </label>
                 <input
@@ -156,14 +153,14 @@ function Login() {
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-center text-sm text-slate-400">
+            <div className="mt-6 space-y-3 text-center text-sm text-zinc-400">
               <p>
                 Don&apos;t have an account?{" "}
-                <Link to="/signup" className="font-semibold text-indigo-300 hover:text-indigo-200">
+                <Link to="/signup" className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
                   Sign up
                 </Link>
               </p>
-              <Link to="/" className="inline-flex font-medium text-slate-500 hover:text-slate-300">
+              <Link to="/" className="inline-flex font-medium text-zinc-500 hover:text-zinc-300 transition-colors">
                 ← Back to Landing
               </Link>
             </div>
