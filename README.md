@@ -5,7 +5,7 @@ PlayHub is a real-time multiplayer Tic-Tac-Toe platform built for competitive pl
 Create an account, challenge online players, join live rooms, track match history and statistics, and climb the leaderboard through a responsive web experience.
 
 - **Live demo:** [playhub-multiplayer-arena-1.onrender.com](https://playhub-multiplayer-arena-1.onrender.com)
-- **Repository:** [github.com/akil9979/Multiplayer-Tic-Tac-Toe](https://github.com/akil9979/Multiplayer-Tic-Tac-Toe)
+- **Repository:** [github.com/akil9979/Multiplayer-Arena](https://github.com/akil9979/PlayHub-Multiplayer-Arena)
 
 ## Features
 
