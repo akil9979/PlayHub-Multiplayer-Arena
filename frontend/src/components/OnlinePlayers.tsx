@@ -80,7 +80,7 @@ export default function OnlinePlayers({
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <span>🟢 Online Players</span>
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-zinc-400">
             Challenge players currently active in the PlayHub arena
           </p>
         </div>
@@ -88,7 +88,6 @@ export default function OnlinePlayers({
           <SocketStatusBadge showLabel={false} />
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             {onlineUsers.length} Active{" "}
@@ -124,15 +123,15 @@ export default function OnlinePlayers({
             return (
               <div
                 key={player.userId}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/60 p-3.5 shadow-md backdrop-blur-sm transition hover:border-slate-700 hover:bg-slate-900/90"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[#27272a] bg-[#111113] p-3.5 transition-colors hover:border-[#3f3f46] hover:bg-[#18181b]"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-sm font-bold text-white shadow-inner">
+                  <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#27272a] border border-[#3f3f46] text-sm font-bold text-[#fafafa]">
                     {player.name ? player.name.charAt(0).toUpperCase() : "P"}
-                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-emerald-500"></span>
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#111113] bg-emerald-500"></span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-200">
+                    <p className="truncate text-xs font-semibold text-[#fafafa]">
                       {player.name}
                     </p>
                     <div className="flex items-center gap-1 text-[11px] text-emerald-400">
@@ -153,17 +152,17 @@ export default function OnlinePlayers({
                         ? "Challenge in progress"
                         : "Send challenge"
                     }
-                    className={`inline-flex items-center justify-center rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+                    className={`inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                       isPendingThisPlayer
-                        ? "border border-purple-500/40 bg-purple-500/20 text-purple-300 cursor-not-allowed animate-pulse"
+                        ? "border border-amber-500/30 bg-amber-500/10 text-amber-300 cursor-not-allowed"
                         : isDisabled
-                          ? "border border-slate-800 bg-slate-800/40 text-slate-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20 hover:scale-105 hover:from-indigo-500 hover:to-purple-500"
+                          ? "border border-[#27272a] bg-[#18181b] text-zinc-500 cursor-not-allowed"
+                          : "bg-[#22c55e] text-[#052e16] hover:bg-[#16a34a]"
                     }`}
                   >
                     {isPendingThisPlayer ? (
-                      <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-purple-400 animate-ping" />
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                         Pending...
                       </span>
                     ) : !isConnected ? (

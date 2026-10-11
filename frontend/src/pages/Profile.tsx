@@ -58,7 +58,7 @@ function Profile() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0b] text-[#fafafa]">
         <p>User information not available.</p>
       </div>
     );
@@ -69,21 +69,21 @@ function Profile() {
       <Navbar variant="authenticated" />
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-8 px-4 py-8">
         {/* Profile Header */}
-        <div className="surface-card-lg border-slate-800 bg-slate-900/80 p-6 sm:p-8">
+        <div className="surface-card-lg p-6 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-3xl font-extrabold shadow-lg shadow-indigo-500/25">
+            <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-[#3f3f46] bg-[#18181b] text-3xl font-extrabold text-[#fafafa]">
               {user.name.charAt(0).toUpperCase()}
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-bold sm:text-3xl">{user.name}</h1>
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+                <h1 className="text-2xl font-bold text-[#fafafa] sm:text-3xl">{user.name}</h1>
+                <span className="rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-2.5 py-0.5 text-xs font-semibold text-[#22c55e]">
                   Online
                 </span>
               </div>
-              <p className="mt-1 text-sm text-slate-400">{user.email}</p>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-1 text-sm text-[#a1a1aa]">{user.email}</p>
+              <p className="mt-2 text-xs text-[#71717a]">
                 Member since {new Date(user.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -92,7 +92,7 @@ function Profile() {
 
         {/* Statistics */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-white">
+          <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
             Career Statistics
           </h2>
 
@@ -107,51 +107,51 @@ function Profile() {
           ) : stats ? (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 text-center shadow-lg backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <div className="rounded-xl border border-[#27272a] bg-[#111113] p-5 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#71717a]">
                     Games Played
                   </p>
-                  <p className="mt-2 text-3xl font-bold text-white">
+                  <p className="mt-2 text-3xl font-bold text-[#fafafa]">
                     {stats.games_played}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-500/20 bg-slate-900/60 p-5 text-center shadow-lg backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                <div className="rounded-xl border border-[#22c55e]/30 bg-[#111113] p-5 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#22c55e]">
                     Wins
                   </p>
-                  <p className="mt-2 text-3xl font-bold text-green-400">
+                  <p className="mt-2 text-3xl font-bold text-[#22c55e]">
                     {stats.wins}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-rose-500/20 bg-slate-900/60 p-5 text-center shadow-lg backdrop-blur-sm">
+                <div className="rounded-xl border border-rose-500/30 bg-[#111113] p-5 text-center">
                   <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
                     Losses
                   </p>
-                  <p className="mt-2 text-3xl font-bold text-red-400">
+                  <p className="mt-2 text-3xl font-bold text-rose-400">
                     {stats.losses}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-amber-500/20 bg-slate-900/60 p-5 text-center shadow-lg backdrop-blur-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                <div className="rounded-xl border border-[#3f3f46] bg-[#111113] p-5 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#a1a1aa]">
                     Draws
                   </p>
-                  <p className="mt-2 text-3xl font-bold text-yellow-400">
+                  <p className="mt-2 text-3xl font-bold text-[#fafafa]">
                     {stats.draws}
                   </p>
                 </div>
               </div>
 
               {/* Win Rate */}
-              <div className="rounded-2xl border border-indigo-500/20 bg-slate-900/60 p-6 shadow-lg backdrop-blur-sm">
+              <div className="rounded-xl border border-[#27272a] bg-[#111113] p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#22c55e]">
                       Win Rate
                     </p>
-                    <p className="mt-1 text-3xl sm:text-4xl font-extrabold text-indigo-300">
+                    <p className="mt-1 text-3xl sm:text-4xl font-extrabold text-[#fafafa]">
                       {winRate.toFixed(1)}%
                     </p>
                   </div>
@@ -161,16 +161,16 @@ function Profile() {
                   </div>
                 </div>
 
-                <div className="mt-5 h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="mt-5 h-2.5 w-full overflow-hidden rounded-full border border-[#27272a] bg-[#18181b]">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500"
+                    className="h-full rounded-full bg-[#22c55e] transition-all duration-500"
                     style={{ width: `${winRate}%` }}
                   />
                 </div>
               </div>
             </>
           ) : (
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-6 text-center text-slate-400">
+            <div className="rounded-xl border border-[#27272a] bg-[#111113] p-6 text-center text-[#71717a]">
               No statistics available yet. Play a match to start your record!
             </div>
           )}
@@ -180,15 +180,15 @@ function Profile() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white">
+              <h2 className="text-xl font-bold tracking-tight text-[#fafafa]">
                 Match History
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#a1a1aa]">
                 Detailed record of all your multiplayer matches
               </p>
             </div>
             {gameHistory.length > 0 && (
-              <span className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
+              <span className="rounded-full border border-[#27272a] bg-[#18181b] px-3 py-1 text-xs font-semibold text-[#a1a1aa]">
                 {gameHistory.length} Matches
               </span>
             )}

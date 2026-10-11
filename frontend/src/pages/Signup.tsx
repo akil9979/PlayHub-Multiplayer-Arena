@@ -81,50 +81,47 @@ function Signup() {
       <Navbar variant="public" />
 
       <main className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.15),_transparent_55%)]" />
-
-        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl backdrop-blur-xl lg:grid-cols-2">
-          <aside className="relative hidden overflow-hidden border-r border-slate-800 bg-gradient-to-br from-slate-950 via-purple-950/40 to-slate-950 p-10 lg:flex lg:flex-col lg:justify-between">
-            <div className="pointer-events-none absolute -left-10 bottom-0 h-48 w-48 rounded-full bg-pink-500/15 blur-3xl" />
+        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] lg:grid-cols-2">
+          <aside className="relative hidden overflow-hidden border-r border-[#27272a] bg-[#0a0a0b] p-10 lg:flex lg:flex-col lg:justify-between">
             <div>
-              <p className="font-display text-sm font-bold tracking-[0.3em] text-indigo-400">
+              <p className="font-display text-sm font-bold tracking-[0.2em] text-[#fafafa]">
                 PLAYHUB
               </p>
-              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
+              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#fafafa]">
                 Create your player profile
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-[#a1a1aa]">
                 Join the arena, challenge rivals in real time, and start building
                 your competitive record.
               </p>
             </div>
 
-            <ul className="mt-10 space-y-3 text-sm text-slate-300">
-              <li className="rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3">
+            <ul className="mt-10 space-y-3 text-sm text-[#fafafa]">
+              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
                 Live Tic-Tac-Toe multiplayer
               </li>
-              <li className="rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3">
+              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
                 Online challenges & private rooms
               </li>
-              <li className="rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3">
+              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
                 Match history & leaderboard ranks
               </li>
             </ul>
 
-            <p className="text-xs text-slate-500">Free to join • Instant play</p>
+            <p className="text-xs text-[#71717a]">Free to join • Instant play</p>
           </aside>
 
           <section className="animate-fade-in flex flex-col justify-center p-6 sm:p-10">
             <div className="mb-8 space-y-2 lg:hidden">
-              <p className="font-display text-sm font-bold tracking-[0.3em] text-indigo-400">
+              <p className="font-display text-sm font-bold tracking-[0.2em] text-[#fafafa]">
                 PLAYHUB
               </p>
-              <h1 className="text-2xl font-extrabold text-white">Create account</h1>
+              <h1 className="text-2xl font-extrabold text-[#fafafa]">Create account</h1>
             </div>
 
             <div className="mb-6 hidden lg:block">
-              <h2 className="text-2xl font-extrabold text-white">Sign Up</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <h2 className="text-2xl font-extrabold text-[#fafafa]">Sign Up</h2>
+              <p className="mt-1 text-sm text-[#a1a1aa]">
                 Set up your PlayHub account to start playing.
               </p>
             </div>
@@ -134,14 +131,14 @@ function Signup() {
               {success && (
                 <div
                   role="status"
-                  className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"
+                  className="rounded-lg border border-[#22c55e]/40 bg-[#22c55e]/10 px-4 py-3 text-sm text-[#22c55e]"
                 >
                   {success}
                 </div>
               )}
 
               <div className="space-y-2">
-                <label htmlFor="signup-name" className="text-sm font-medium text-slate-300">
+                <label htmlFor="signup-name" className="text-sm font-medium text-[#a1a1aa]">
                   Name
                 </label>
                 <input
@@ -158,7 +155,7 @@ function Signup() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="signup-email" className="text-sm font-medium text-slate-300">
+                <label htmlFor="signup-email" className="text-sm font-medium text-[#a1a1aa]">
                   Email
                 </label>
                 <input
@@ -175,7 +172,7 @@ function Signup() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="signup-password" className="text-sm font-medium text-slate-300">
+                <label htmlFor="signup-password" className="text-sm font-medium text-[#a1a1aa]">
                   Password
                 </label>
                 <input
@@ -194,7 +191,7 @@ function Signup() {
               <div className="space-y-2">
                 <label
                   htmlFor="signup-confirm-password"
-                  className="text-sm font-medium text-slate-300"
+                  className="text-sm font-medium text-[#a1a1aa]"
                 >
                   Confirm password
                 </label>
@@ -218,7 +215,7 @@ function Signup() {
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <LoadingSpinner size="sm" className="text-white" />
+                    <LoadingSpinner size="sm" className="text-[#052e16]" />
                     <span>Creating account...</span>
                   </span>
                 ) : (
@@ -227,14 +224,14 @@ function Signup() {
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-center text-sm text-slate-400">
+            <div className="mt-6 space-y-3 text-center text-sm text-[#a1a1aa]">
               <p>
                 Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-indigo-300 hover:text-indigo-200">
+                <Link to="/login" className="font-semibold text-[#fafafa] hover:underline">
                   Login
                 </Link>
               </p>
-              <Link to="/" className="inline-flex font-medium text-slate-500 hover:text-slate-300">
+              <Link to="/" className="inline-flex font-medium text-[#71717a] hover:text-[#fafafa]">
                 ← Back to Landing
               </Link>
             </div>

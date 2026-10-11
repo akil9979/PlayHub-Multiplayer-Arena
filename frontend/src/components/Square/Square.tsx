@@ -7,36 +7,58 @@ interface SquareProps {
 }
 
 export default function Square({ value, onClick, disabled }: SquareProps) {
+  const isPlayable = !disabled && value === null;
+
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={disabled || value !== null}
       className={`
-        relative flex h-24 w-24 sm:h-28 sm:w-28
+        relative flex aspect-square w-full h-full
         items-center justify-center
-        rounded-2xl
-        border transition-all duration-200
+        rounded-lg sm:rounded-xl
+        border transition-colors duration-150
         select-none
         ${
           value === "circle"
-            ? "border-cyan-500/50 bg-slate-900/90 text-cyan-400 shadow-lg shadow-cyan-500/20"
+            ? "border-[#5ab0e6]/40 bg-[#111113] text-[#5ab0e6] cursor-default"
             : value === "cross"
-              ? "border-purple-500/50 bg-slate-900/90 text-purple-400 shadow-lg shadow-purple-500/20"
-              : disabled
-                ? "border-slate-800 bg-slate-950/60 cursor-not-allowed opacity-60"
-                : "border-slate-800/80 bg-slate-900/70 hover:border-indigo-500/50 hover:bg-slate-800/80 hover:scale-[1.03] active:scale-95 cursor-pointer shadow-md"
+              ? "border-[#7c6ee6]/40 bg-[#111113] text-[#7c6ee6] cursor-default"
+              : isPlayable
+                ? "border-[#27272a] bg-[#111113] hover:border-zinc-500 hover:bg-[#18181b] cursor-pointer"
+                : "border-[#27272a] bg-[#0a0a0b] cursor-not-allowed opacity-60"
         }
       `}
     >
       {value === "circle" && (
-        <span className="text-4xl sm:text-5xl font-black text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]">
-          O
-        </span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-[55%] w-[55%] text-[#5ab0e6]"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+        </svg>
       )}
       {value === "cross" && (
-        <span className="text-4xl sm:text-5xl font-black text-purple-400 drop-shadow-[0_0_12px_rgba(192,132,252,0.6)]">
-          X
-        </span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-[55%] w-[55%] text-[#7c6ee6]"
+          aria-hidden="true"
+        >
+          <line x1="5" y1="5" x2="19" y2="19" />
+          <line x1="19" y1="5" x2="5" y2="19" />
+        </svg>
       )}
     </button>
   );

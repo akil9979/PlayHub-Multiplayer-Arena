@@ -216,16 +216,16 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
   const socketDotClass = {
     connected: "bg-emerald-500",
     connecting: "bg-amber-400 animate-pulse",
-    disconnected: "bg-slate-500",
-    error: "bg-rose-500",
+    disconnected: "bg-zinc-500",
+    error: "bg-red-500",
   }[socketStatus];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[#27272a] bg-[#0a0a0b]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to={brandPath}
-          className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
+          className="flex items-center gap-2"
           onClick={(event) => {
             if (mode === "public") {
               handleNavLinkClick(event, "/#home");
@@ -234,23 +234,13 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
             }
           }}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 shadow-lg shadow-indigo-500/25">
-            <span className="font-display text-sm font-bold text-white" aria-hidden>
-              PH
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-lg font-extrabold tracking-wider text-transparent">
-              PLAYHUB
-            </span>
-            <span className="-mt-1 text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
-              Multiplayer Arena
-            </span>
-          </div>
+          <span className="font-display text-lg font-bold tracking-wider text-[#fafafa]">
+            PLAYHUB
+          </span>
         </Link>
 
         <nav
-          className="hidden items-center gap-1.5 rounded-full border border-slate-800/80 bg-slate-900/60 p-1 md:flex"
+          className="hidden items-center gap-1 md:flex"
           aria-label="Primary"
         >
           {navLinks.map((link) => {
@@ -260,10 +250,10 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 key={link.path}
                 to={link.path}
                 onClick={(event) => handleNavLinkClick(event, link.path)}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20"
-                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+                    ? "text-[#fafafa] font-semibold"
+                    : "text-zinc-400 hover:text-[#fafafa]"
                 }`}
               >
                 {link.name}
@@ -277,21 +267,21 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-2.5 rounded-full border border-slate-800 bg-slate-900/90 py-1.5 pl-2 pr-3.5 transition hover:border-slate-700 hover:bg-slate-800/80"
+                className="flex items-center gap-2.5 rounded-lg border border-[#27272a] bg-[#111113] py-1.5 pl-2 pr-3.5 transition-colors hover:border-[#3f3f46] hover:bg-[#18181b]"
                 title="View Profile"
               >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-inner">
+                <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-[#27272a] text-xs font-bold text-[#fafafa]">
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   <span
-                    className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-900 ${socketDotClass}`}
+                    className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-[#111113] ${socketDotClass}`}
                     aria-label={socketLabel}
                   />
                 </div>
                 <div className="text-left">
-                  <p className="text-xs font-semibold leading-tight text-slate-200">
+                  <p className="text-xs font-semibold leading-tight text-[#fafafa]">
                     {user.name}
                   </p>
-                  <p className="text-[10px] leading-tight text-slate-400">{socketLabel}</p>
+                  <p className="text-[10px] leading-tight text-zinc-400">{socketLabel}</p>
                 </div>
               </Link>
 
@@ -299,7 +289,7 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-300 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/20 hover:text-white disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
               >
                 <svg
                   className="h-4 w-4"
@@ -319,14 +309,17 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Link
                 to="/login"
-                className="rounded-xl border border-slate-700 bg-slate-800/80 px-3.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white"
+                className="text-sm font-medium text-zinc-400 hover:text-[#fafafa] transition-colors"
               >
                 Login
               </Link>
-              <Link to="/signup" className="btn-primary !rounded-xl !px-3.5 !py-1.5 !text-xs">
+              <Link
+                to="/signup"
+                className="inline-flex items-center justify-center rounded-lg bg-[#fafafa] px-3.5 py-1.5 text-xs font-semibold text-[#0a0a0b] transition-colors hover:bg-zinc-200"
+              >
                 Get Started
               </Link>
             </div>
@@ -337,12 +330,12 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           {mode === "authenticated" && user && (
             <Link
               to="/profile"
-              className="relative flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
+              className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#27272a] text-xs font-bold text-[#fafafa] border border-[#27272a]"
               aria-label="Open profile"
             >
               {user.name ? user.name.charAt(0).toUpperCase() : "U"}
               <span
-                className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-slate-900 ${socketDotClass}`}
+                className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-[#0a0a0b] ${socketDotClass}`}
                 aria-label={socketLabel}
               />
             </Link>
@@ -350,7 +343,7 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white"
+            className="rounded-lg border border-[#27272a] bg-[#111113] p-2 text-zinc-400 hover:text-white hover:bg-[#18181b]"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
             aria-label="Toggle menu"
@@ -379,7 +372,7 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
       {mobileMenuOpen && (
         <div
           id="mobile-nav"
-          className="space-y-2 border-b border-slate-800 bg-slate-950 px-4 pb-4 pt-2 md:hidden"
+          className="space-y-2 border-b border-[#27272a] bg-[#0a0a0b] px-4 pb-4 pt-2 md:hidden"
         >
           {navLinks.map((link) => {
             const isActive = isActivePath(link.path);
@@ -388,10 +381,10 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 key={link.path}
                 to={link.path}
                 onClick={(event) => handleNavLinkClick(event, link.path)}
-                className={`block rounded-lg px-3 py-2 text-sm font-medium ${
+                className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                    ? "text-[#fafafa] bg-[#18181b] font-semibold"
+                    : "text-zinc-400 hover:bg-[#18181b] hover:text-[#fafafa]"
                 }`}
               >
                 {link.name}
@@ -400,33 +393,33 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           })}
 
           {mode === "authenticated" && user ? (
-            <div className="flex items-center justify-between border-t border-slate-800 pt-2">
-              <div className="text-xs text-slate-400">
+            <div className="flex items-center justify-between border-t border-[#27272a] pt-3">
+              <div className="text-xs text-zinc-400">
                 Logged in as{" "}
-                <span className="font-semibold text-slate-200">{user.name}</span>
+                <span className="font-semibold text-[#fafafa]">{user.name}</span>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/20 disabled:opacity-50"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 border-t border-slate-800 pt-2">
+            <div className="flex items-center gap-3 border-t border-[#27272a] pt-3">
               <Link
                 to="/login"
                 onClick={closeMobile}
-                className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-center text-xs font-semibold text-slate-200"
+                className="flex-1 text-center text-xs font-medium text-zinc-400 hover:text-white py-2"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
                 onClick={closeMobile}
-                className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-center text-xs font-semibold text-white"
+                className="flex-1 rounded-lg bg-[#fafafa] px-3 py-2 text-center text-xs font-semibold text-[#0a0a0b] hover:bg-zinc-200 transition-colors"
               >
                 Get Started
               </Link>

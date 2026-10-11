@@ -53,11 +53,11 @@ export default function GameHistoryComponent({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-sm">
+    <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#111113]">
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-300">
-          <thead className="border-b border-slate-800 bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400">
+        <table className="w-full text-left text-sm text-zinc-300">
+          <thead className="border-b border-[#27272a] bg-[#0a0a0b] text-xs uppercase tracking-wider text-zinc-400">
             <tr>
               <th scope="col" className="px-5 py-3.5">
                 Result
@@ -76,7 +76,7 @@ export default function GameHistoryComponent({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-[#27272a]">
             {displayedGames.map((game) => {
               const isCircle = game.circle_user_id === userId;
               const isCross = game.cross_user_id === userId;
@@ -90,23 +90,23 @@ export default function GameHistoryComponent({
               return (
                 <tr
                   key={game.id}
-                  className="transition-colors hover:bg-slate-800/30"
+                  className="transition-colors hover:bg-[#18181b]"
                 >
                   {/* Result Badge */}
                   <td className="px-5 py-4 whitespace-nowrap">
                     {isDraw ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3f3f46] bg-[#27272a] px-3 py-1 text-xs font-semibold text-zinc-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400"></span>
                         Draw
                       </span>
                     ) : isWon ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         Victory
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
                         Defeat
                       </span>
                     )}
@@ -115,19 +115,19 @@ export default function GameHistoryComponent({
                   {/* Circle User */}
                   <td className="px-5 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500/20 text-xs font-bold text-cyan-300">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5ab0e6]/20 text-xs font-bold text-[#5ab0e6]">
                         O
                       </span>
                       <span
                         className={
                           isCircle
                             ? "font-semibold text-white flex items-center gap-1.5"
-                            : "text-slate-300"
+                            : "text-zinc-300"
                         }
                       >
                         {game.circle_user_name}
                         {isCircle && (
-                          <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-medium text-cyan-300">
+                          <span className="rounded bg-[#5ab0e6]/20 px-1.5 py-0.5 text-[10px] font-medium text-[#5ab0e6]">
                             You
                           </span>
                         )}
@@ -138,19 +138,19 @@ export default function GameHistoryComponent({
                   {/* Cross User */}
                   <td className="px-5 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-300">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#7c6ee6]/20 text-xs font-bold text-[#7c6ee6]">
                         X
                       </span>
                       <span
                         className={
                           isCross
                             ? "font-semibold text-white flex items-center gap-1.5"
-                            : "text-slate-300"
+                            : "text-zinc-300"
                         }
                       >
                         {game.cross_user_name}
                         {isCross && (
-                          <span className="rounded bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-medium text-purple-300">
+                          <span className="rounded bg-[#7c6ee6]/20 px-1.5 py-0.5 text-[10px] font-medium text-[#7c6ee6]">
                             You
                           </span>
                         )}
@@ -162,18 +162,18 @@ export default function GameHistoryComponent({
                   <td className="px-5 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleCopyRoomId(game.room_id)}
-                      className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/60 px-2.5 py-1 text-xs font-mono text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                      className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#0a0a0b] px-2.5 py-1 text-xs font-mono text-zinc-400 hover:border-[#3f3f46] hover:text-white"
                       title="Click to copy room ID"
                     >
                       <span>{game.room_id}</span>
-                      <span className="text-[10px] text-slate-500 group-hover/btn:text-indigo-400">
+                      <span className="text-[10px] text-zinc-500 group-hover/btn:text-emerald-400">
                         {copiedId === game.room_id ? "✓ Copied" : "📋"}
                       </span>
                     </button>
                   </td>
 
                   {/* Date */}
-                  <td className="px-5 py-4 whitespace-nowrap text-xs text-slate-400">
+                  <td className="px-5 py-4 whitespace-nowrap text-xs text-zinc-400">
                     {formatDate(game.created_at)}
                   </td>
                 </tr>
@@ -184,7 +184,7 @@ export default function GameHistoryComponent({
       </div>
 
       {/* Mobile Card List View */}
-      <div className="divide-y divide-slate-800/60 md:hidden">
+      <div className="divide-y divide-[#27272a] md:hidden">
         {displayedGames.map((game) => {
           const isCircle = game.circle_user_id === userId;
           const isCross = game.cross_user_id === userId;
@@ -199,52 +199,52 @@ export default function GameHistoryComponent({
             <div key={game.id} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 {isDraw ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#3f3f46] bg-[#27272a] px-2.5 py-0.5 text-xs font-semibold text-zinc-300">
                     ● Draw
                   </span>
                 ) : isWon ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
                     ● Victory
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-300">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-400">
                     ● Defeat
                   </span>
                 )}
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-zinc-400">
                   {formatDate(game.created_at)}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-2.5">
-                  <div className="flex items-center gap-1.5 text-cyan-400 font-semibold mb-1">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500/20 text-[10px]">
+                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-2.5">
+                  <div className="flex items-center gap-1.5 text-[#5ab0e6] font-semibold mb-1">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#5ab0e6]/20 text-[10px]">
                       O
                     </span>
                     <span>Circle</span>
                   </div>
-                  <p className="truncate font-medium text-slate-200">
+                  <p className="truncate font-medium text-zinc-200">
                     {game.circle_user_name}
                     {isCircle && (
-                      <span className="ml-1 text-[10px] text-cyan-400">
+                      <span className="ml-1 text-[10px] text-[#5ab0e6]">
                         (You)
                       </span>
                     )}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-2.5">
-                  <div className="flex items-center gap-1.5 text-purple-400 font-semibold mb-1">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-500/20 text-[10px]">
+                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-2.5">
+                  <div className="flex items-center gap-1.5 text-[#7c6ee6] font-semibold mb-1">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#7c6ee6]/20 text-[10px]">
                       X
                     </span>
                     <span>Cross</span>
                   </div>
-                  <p className="truncate font-medium text-slate-200">
+                  <p className="truncate font-medium text-zinc-200">
                     {game.cross_user_name}
                     {isCross && (
-                      <span className="ml-1 text-[10px] text-purple-400">
+                      <span className="ml-1 text-[10px] text-[#7c6ee6]">
                         (You)
                       </span>
                     )}
@@ -252,11 +252,11 @@ export default function GameHistoryComponent({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
-                <span>Room: <code className="font-mono text-slate-300">{game.room_id}</code></span>
+              <div className="flex items-center justify-between pt-1 text-xs text-zinc-400">
+                <span>Room: <code className="font-mono text-zinc-300">{game.room_id}</code></span>
                 <button
                   onClick={() => handleCopyRoomId(game.room_id)}
-                  className="text-xs text-indigo-400 hover:text-indigo-300"
+                  className="text-xs text-zinc-400 hover:text-white transition-colors"
                 >
                   {copiedId === game.room_id ? "Copied!" : "Copy Code"}
                 </button>

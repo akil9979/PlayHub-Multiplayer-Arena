@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../Socket";
 import Board from "../components/Board";
+import GameList from "../components/GameList";
 import Navbar from "../components/Navbar";
 import SocketStatusBadge from "../components/common/SocketStatusBadge";
 import ErrorMessage from "../components/common/ErrorMessage";
@@ -28,6 +29,9 @@ function Game() {
     player?: Player;
   } | null;
 
+  const [selectedGame, setSelectedGame] = useState<string | null>(
+    challengeState?.roomId ? "tic-tac-toe" : null,
+  );
   const [roomId, setRoomId] = useState(challengeState?.roomId || "");
   const [roomInput, setRoomInput] = useState("");
 
@@ -54,6 +58,21 @@ function Game() {
   const { status, isConnected } = useSocketStatus();
 
   const user = useAppSelector((state) => state.auth.user);
+
+  // Warn before closing or refreshing during an active live match
+  useEffect(() => {
+    if (gameStatus !== "playing") return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [gameStatus]);
 
   const handleCreateRoom = () => {
     if (!isConnected) {
@@ -286,24 +305,304 @@ function Game() {
   }, []);
 
   const isMyTurn = game && player && game.currentPlayer === player && !game.winner;
+  const isMatchLive = gameStatus === "playing";
+  const isMatchScreen =
+    (gameStatus === "playing" ||
+      gameStatus === "finished" ||
+      gameStatus === "opponent-left") &&
+    Boolean(game) &&
+    Boolean(player);
+
+  if (isMatchScreen && game && player) {
+    return (
+      <div
+        className="page-shell h-dvh flex flex-col overflow-hidden"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          paddingLeft: "env(safe-area-inset-left, 0px)",
+          paddingRight: "env(safe-area-inset-right, 0px)",
+        }}
+      >
+        <style>{`
+          @media (max-height: 700px) {
+            .match-compact-hide { display: none !important; }
+            .match-compact-title { font-size: 0.95rem !important; margin-top: 0.125rem !important; margin-bottom: 0.125rem !important; }
+          }
+        `}</style>
+
+        {/* Top Navbar: only shown after match concludes (finished or opponent-left) */}
+        {!isMatchLive && (
+          <div className="shrink-0">
+            <Navbar variant="authenticated" />
+          </div>
+        )}
+
+        {/* Live Match Container: exactly fits the remaining viewport height */}
+        <div className="mx-auto flex w-full max-w-xl flex-1 min-h-0 flex-col justify-between overflow-hidden px-3 sm:px-4 py-2 sm:py-3 gap-1.5 sm:gap-2">
+          {/* 1. Compact Header */}
+          <div className="shrink-0 text-center space-y-1 w-full">
+            <div className="flex items-center justify-between gap-2 w-full">
+              {!isMatchLive ? (
+                <button
+                  type="button"
+                  onClick={handleBackToDashboard}
+                  className="group inline-flex min-h-[36px] sm:min-h-[40px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3 py-1.5 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                >
+                  <span className="transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none">
+                    ←
+                  </span>
+                  <span>Back to Dashboard</span>
+                </button>
+              ) : (
+                <div />
+              )}
+              <div className="flex items-center gap-2">
+                <SocketStatusBadge showRetry />
+              </div>
+            </div>
+
+            <div>
+              <span className="match-compact-hide inline-block rounded-md border border-[#3f3f46] bg-[#18181b] px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-[#fafafa]">
+                1v1 Tactical Arena
+              </span>
+              <h1 className="match-compact-title mt-1 text-lg sm:text-2xl font-black tracking-tight text-[#fafafa]">
+                Tic-Tac-Toe
+              </h1>
+              <p className="match-compact-hide text-[11px] sm:text-xs text-[#a1a1aa]">
+                Live Multiplayer Turn-Based Battle
+              </p>
+            </div>
+          </div>
+
+          {/* 2. Compact Player Row */}
+          <div className="shrink-0 grid grid-cols-2 gap-2 w-full">
+            {/* Circle Player Card */}
+            <div
+              className={`relative rounded-lg sm:rounded-xl border p-2 sm:p-2.5 transition-colors ${
+                game.currentPlayer === "circle" && !game.winner
+                  ? "border-[#5ab0e6] bg-[#0a0a0b]"
+                  : "border-[#27272a] bg-[#0a0a0b]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md border border-[#27272a] bg-[#111113] text-xs sm:text-sm font-black text-[#5ab0e6]">
+                  O
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="flex items-center gap-1">
+                    <p className="truncate text-xs font-bold text-[#fafafa]">
+                      {player === "circle" ? user?.name || "Player" : "Opponent"}
+                    </p>
+                    {player === "circle" && (
+                      <span className="shrink-0 rounded bg-[#5ab0e6]/20 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#5ab0e6]">
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#5ab0e6] font-semibold truncate">
+                    Circle (O)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cross Player Card */}
+            <div
+              className={`relative rounded-lg sm:rounded-xl border p-2 sm:p-2.5 transition-colors ${
+                game.currentPlayer === "cross" && !game.winner
+                  ? "border-[#7c6ee6] bg-[#0a0a0b]"
+                  : "border-[#27272a] bg-[#0a0a0b]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md border border-[#27272a] bg-[#111113] text-xs sm:text-sm font-black text-[#7c6ee6]">
+                  X
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="flex items-center gap-1">
+                    <p className="truncate text-xs font-bold text-[#fafafa]">
+                      {player === "cross" ? user?.name || "Player" : "Opponent"}
+                    </p>
+                    {player === "cross" && (
+                      <span className="shrink-0 rounded bg-[#7c6ee6]/20 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#7c6ee6]">
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#7c6ee6] font-semibold truncate">
+                    Cross (X)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Compact Turn / Status Banner */}
+          <div className="shrink-0 w-full">
+            {!game.winner && gameStatus === "playing" && (
+              <div
+                className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-center text-xs font-bold leading-tight truncate ${
+                  isMyTurn
+                    ? "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]"
+                    : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                }`}
+              >
+                <span className="shrink-0">{isMyTurn ? "🎯" : "⏳"}</span>
+                <span className="truncate">
+                  {isMyTurn
+                    ? "Your Turn — Choose a square to place your symbol"
+                    : "Opponent's Turn — Waiting for rival move..."}
+                </span>
+              </div>
+            )}
+
+            {gameStatus === "opponent-left" && (
+              <div className="flex items-center justify-center gap-2 rounded-lg border border-[#22c55e]/40 bg-[#22c55e]/10 px-3 py-1.5 text-center text-xs font-bold text-[#22c55e] leading-tight truncate">
+                <span className="shrink-0">🚪</span>
+                <span className="font-bold">Opponent Disconnected</span>
+                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
+                  — Your opponent has left the match. You have been awarded the victory!
+                </span>
+              </div>
+            )}
+
+            {game.winner && gameStatus !== "opponent-left" && (
+              <div
+                className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-center text-xs font-bold leading-tight truncate ${
+                  game.winner === "draw"
+                    ? "border-[#3f3f46] bg-[#18181b] text-[#fafafa]"
+                    : game.winner === player
+                      ? "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]"
+                      : "border-rose-500/40 bg-rose-500/10 text-rose-300"
+                }`}
+              >
+                <span className="shrink-0">
+                  {game.winner === "draw" ? "🤝" : game.winner === player ? "🏆" : "💔"}
+                </span>
+                <span className="font-bold">
+                  {game.winner === "draw"
+                    ? "Stalemate — It's a Draw!"
+                    : game.winner === player
+                      ? "VICTORY — You Won!"
+                      : "DEFEAT — You Lost!"}
+                </span>
+                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
+                  {game.winner === "draw"
+                    ? "— Well played from both sides. Ready for a decider?"
+                    : game.winner === player
+                      ? "— Great game! Outstanding tactical positioning."
+                      : "— Better luck next round! Request a rematch to settle the score."}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Board Area: takes ALL remaining height and centers the board */}
+          <div
+            className="flex-1 min-h-0 w-full flex items-center justify-center p-1 sm:p-2"
+            style={{ containerType: "size" }}
+          >
+            <Board game={game} roomId={roomId} player={player} />
+          </div>
+
+          {/* 5. Bottom Actions Row */}
+          <div className="shrink-0 w-full py-1">
+            {game.winner && gameStatus !== "opponent-left" ? (
+              <div className="space-y-1.5">
+                {rematchError && (
+                  <ErrorMessage
+                    compact
+                    message={rematchError}
+                    onDismiss={() => setRematchError(null)}
+                  />
+                )}
+                {opponentRequested && (
+                  <p className="text-center text-xs font-semibold text-[#22c55e]">
+                    ⚔️ Your opponent has requested a rematch!
+                  </p>
+                )}
+                <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                  {!opponentRequested && (
+                    <button
+                      type="button"
+                      onClick={handleRematchRequest}
+                      disabled={waitingForOpponent}
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {waitingForOpponent ? "Waiting for opponent..." : "🔄 Request Rematch"}
+                    </button>
+                  )}
+
+                  {opponentRequested && (
+                    <button
+                      type="button"
+                      onClick={handleRematchRequest}
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold cursor-pointer"
+                    >
+                      ✓ Accept Rematch
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleLeaveGame}
+                    className="btn-secondary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold cursor-pointer"
+                  >
+                    Leave Match
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleLeaveGame}
+                  className="inline-flex min-h-[40px] sm:min-h-[44px] items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 px-5 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 cursor-pointer"
+                >
+                  Leave Game
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="page-shell flex flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <Navbar variant="authenticated" />
 
-      <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:py-8">
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 sm:space-y-6 px-4 py-4 sm:py-8">
         {/* Top Header & Navigation */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleBackToDashboard}
-            className="group inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-4 py-2 text-xs font-semibold text-slate-300 transition-all duration-200 hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-95"
-          >
-            <span className="transition-transform duration-200 group-hover:-translate-x-0.5">
-              ←
-            </span>
-            <span>Back to Dashboard</span>
-          </button>
+        <div className="flex items-center justify-between gap-3">
+          {!isMatchLive ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleBackToDashboard}
+                className="group inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+              >
+                <span className="transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none">
+                  ←
+                </span>
+                <span>Back to Dashboard</span>
+              </button>
+
+              {gameStatus === "idle" && !roomId && selectedGame === "tic-tac-toe" && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedGame(null)}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                >
+                  <span>All games</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div />
+          )}
 
           <div className="flex items-center gap-2.5">
             <SocketStatusBadge showRetry />
@@ -311,145 +610,145 @@ function Game() {
         </div>
 
         {/* Main Arena Card */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
-          {/* Ambient Glows */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-purple-500/10 blur-3xl" />
-
+        <div className="relative overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] p-4 sm:p-8">
           {/* Arena Title */}
-          <div className="mb-6 text-center">
-            <span className="rounded-md bg-gradient-to-r from-indigo-600 to-pink-600 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-md">
+          <div className="mb-4 sm:mb-6 text-center">
+            <span className="rounded-md border border-[#3f3f46] bg-[#18181b] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#fafafa]">
               1v1 Tactical Arena
             </span>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Tic-Tac-Toe
+            <h1 className="mt-1.5 sm:mt-2 text-2xl sm:text-4xl font-black tracking-tight text-[#fafafa]">
+              {selectedGame === null && gameStatus === "idle" && !roomId
+                ? "Select Game"
+                : "Tic-Tac-Toe"}
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-400">
-              Live Multiplayer Turn-Based Battle
+            <p className="mt-1 text-xs sm:text-sm text-[#a1a1aa]">
+              {selectedGame === null && gameStatus === "idle" && !roomId
+                ? "Choose a title to enter the arena"
+                : "Live Multiplayer Turn-Based Battle"}
             </p>
           </div>
 
           {/* 1. LOBBY STATE (No Room Selected) */}
           {gameStatus === "idle" && !roomId && (
-            <div className="space-y-6">
-              {status === "connecting" && (
-                <LoadingSpinner center size="sm" label="Connecting to game server..." />
-              )}
-              {status === "error" && (
-                <ErrorMessage
-                  compact
-                  message="Unable to connect to the game server. Use Reconnect above and try again."
-                />
-              )}
-              {lobbyError && (
-                <ErrorMessage
-                  compact
-                  message={lobbyError}
-                  onDismiss={() => setLobbyError(null)}
-                />
-              )}
+            selectedGame === null ? (
+              <GameList onSelect={setSelectedGame} />
+            ) : (
+              <div className="space-y-6">
+                {status === "connecting" && (
+                  <LoadingSpinner center size="sm" label="Connecting to game server..." />
+                )}
+                {status === "error" && (
+                  <ErrorMessage
+                    compact
+                    message="Unable to connect to the game server. Use Reconnect above and try again."
+                  />
+                )}
+                {lobbyError && (
+                  <ErrorMessage
+                    compact
+                    message={lobbyError}
+                    onDismiss={() => setLobbyError(null)}
+                  />
+                )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Host a match */}
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-5 shadow-lg transition-all hover:border-indigo-500/40">
-                  <div className="space-y-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 text-lg">
-                      👑
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Host a match */}
+                  <div className="flex flex-col justify-between rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 transition hover:border-[#3f3f46]">
+                    <div className="space-y-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
+                        👑
+                      </div>
+                      <h3 className="text-base font-bold text-[#fafafa]">Host Match</h3>
+                      <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                        Generate a private room code and invite a friend to play.
+                      </p>
                     </div>
-                    <h3 className="text-base font-bold text-white">Host Match</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Generate a private room code and invite a friend to play.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleCreateRoom}
-                    disabled={!isConnected || isCreatingRoom || isJoiningRoom}
-                    className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:from-indigo-500 hover:to-purple-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  >
-                    {isCreatingRoom && (
-                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    )}
-                    <span>{isCreatingRoom ? "Creating Room..." : "Create Private Room"}</span>
-                  </button>
-                </div>
-
-                {/* Join a match */}
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-5 shadow-lg transition-all hover:border-purple-500/40">
-                  <div className="space-y-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 text-lg">
-                      ⚔️
-                    </div>
-                    <h3 className="text-base font-bold text-white">Join Match</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Enter an invite code provided by another player.
-                    </p>
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <input
-                      value={roomInput}
-                      onChange={(e) => {
-                        setRoomInput(e.target.value.toUpperCase());
-                        if (lobbyError) setLobbyError(null);
-                      }}
-                      placeholder="Enter 6-character code"
-                      maxLength={12}
-                      disabled={isCreatingRoom || isJoiningRoom}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none uppercase font-mono tracking-wider"
-                    />
                     <button
-                      onClick={joinRoom}
-                      disabled={!isConnected || isCreatingRoom || isJoiningRoom || !roomInput.trim()}
-                      className="flex items-center justify-center gap-2 w-full rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-200 transition-all hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleCreateRoom}
+                      disabled={!isConnected || isCreatingRoom || isJoiningRoom}
+                      className="btn-primary mt-4 flex min-h-[44px] items-center justify-center gap-2 w-full py-3 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      {isJoiningRoom && (
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      {isCreatingRoom && (
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#052e16] border-t-transparent" />
                       )}
-                      <span>{isJoiningRoom ? "Joining Room..." : "Join Room"}</span>
+                      <span>{isCreatingRoom ? "Creating Room..." : "Create Private Room"}</span>
                     </button>
                   </div>
+
+                  {/* Join a match */}
+                  <div className="flex flex-col justify-between rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 transition hover:border-[#3f3f46]">
+                    <div className="space-y-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
+                        ⚔️
+                      </div>
+                      <h3 className="text-base font-bold text-[#fafafa]">Join Match</h3>
+                      <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                        Enter an invite code provided by another player.
+                      </p>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <input
+                        value={roomInput}
+                        onChange={(e) => {
+                          setRoomInput(e.target.value.toUpperCase());
+                          if (lobbyError) setLobbyError(null);
+                        }}
+                        placeholder="Enter 6-character code"
+                        maxLength={12}
+                        disabled={isCreatingRoom || isJoiningRoom}
+                        className="w-full min-h-[44px] rounded-lg border border-[#27272a] bg-[#111113] px-3.5 py-2.5 text-xs text-[#fafafa] placeholder:text-[#71717a] focus:border-[#22c55e] focus:outline-none uppercase font-mono tracking-wider"
+                      />
+                      <button
+                        onClick={joinRoom}
+                        disabled={!isConnected || isCreatingRoom || isJoiningRoom || !roomInput.trim()}
+                        className="btn-secondary flex min-h-[44px] items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isJoiningRoom && (
+                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        )}
+                        <span>{isJoiningRoom ? "Joining Room..." : "Join Room"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Game Info Pill */}
+                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-3 text-center text-xs text-[#a1a1aa]">
+                  <span>💡 Circle (⭕) always makes the opening move. 3 in a row to win!</span>
                 </div>
               </div>
-
-              {/* Game Info Pill */}
-              <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-3 text-center text-xs text-slate-400">
-                <span>💡 Circle (⭕) always makes the opening move. 3 in a row to win!</span>
-              </div>
-            </div>
+            )
           )}
 
           {/* 2. WAITING ROOM STATE */}
           {gameStatus === "waiting" && roomId && (
             <div className="space-y-6 py-4 text-center">
-              {/* Radar pulse animation */}
-              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-20"></span>
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-indigo-500/40 bg-indigo-500/10 text-2xl text-indigo-400 shadow-lg shadow-indigo-500/20">
-                  📡
-                </div>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#27272a] bg-[#18181b] text-2xl">
+                📡
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-[#fafafa]">
                   Waiting for Challenger
                 </h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                <p className="text-xs text-[#a1a1aa] max-w-sm mx-auto">
                   Share this room code with your opponent. The match starts as soon as they join.
                 </p>
               </div>
 
               {/* Room Code Showcase */}
-              <div className="mx-auto max-w-sm rounded-2xl border border-indigo-500/30 bg-slate-950/80 p-5 shadow-xl">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">
+              <div className="mx-auto max-w-sm rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#a1a1aa]">
                   Room Invite Code
                 </p>
-                <div className="mt-2 flex items-center justify-center gap-3">
-                  <span className="font-mono text-3xl font-black tracking-[0.25em] text-white">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                  <span className="font-mono text-2xl sm:text-3xl font-black tracking-[0.25em] text-[#fafafa]">
                     {roomId}
                   </span>
                   <button
                     onClick={handleCopyRoomId}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/90 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-700 active:scale-95"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#18181b] px-3.5 py-2 text-xs font-semibold text-[#fafafa] transition hover:bg-[#27272a] cursor-pointer"
                   >
                     <span>{copied ? "✓ Copied!" : "📋 Copy"}</span>
                   </button>
@@ -460,220 +759,13 @@ function Game() {
               <div className="pt-2">
                 <button
                   onClick={handleLeaveGame}
-                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/20"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 px-5 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 cursor-pointer"
                 >
                   Cancel & Leave Room
                 </button>
               </div>
             </div>
           )}
-
-          {/* 3. ACTIVE GAMEPLAY & RESULTS */}
-          {(gameStatus === "playing" || gameStatus === "finished" || gameStatus === "opponent-left") &&
-            game &&
-            player && (
-              <div className="space-y-6">
-                {/* VS Header & Player Identity Cards */}
-                <div className="grid grid-cols-2 gap-3 items-center">
-                  {/* Circle Player Card */}
-                  <div
-                    className={`relative rounded-2xl border p-3.5 transition-all duration-300 ${
-                      game.currentPlayer === "circle" && !game.winner
-                        ? "border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20"
-                        : "border-slate-800 bg-slate-950/60"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/20 text-base font-black text-cyan-400">
-                        O
-                      </div>
-                      <div className="min-w-0 text-left">
-                        <div className="flex items-center gap-1.5">
-                          <p className="truncate text-xs font-bold text-white">
-                            {player === "circle" ? user?.name || "Player" : "Opponent"}
-                          </p>
-                          {player === "circle" && (
-                            <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300">
-                              YOU
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-cyan-400 font-semibold">
-                          Circle (O)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cross Player Card */}
-                  <div
-                    className={`relative rounded-2xl border p-3.5 transition-all duration-300 ${
-                      game.currentPlayer === "cross" && !game.winner
-                        ? "border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/20"
-                        : "border-slate-800 bg-slate-950/60"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/20 text-base font-black text-purple-400">
-                        X
-                      </div>
-                      <div className="min-w-0 text-left">
-                        <div className="flex items-center gap-1.5">
-                          <p className="truncate text-xs font-bold text-white">
-                            {player === "cross" ? user?.name || "Player" : "Opponent"}
-                          </p>
-                          {player === "cross" && (
-                            <span className="rounded bg-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-purple-300">
-                              YOU
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-purple-400 font-semibold">
-                          Cross (X)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Turn Status Banner */}
-                {!game.winner && gameStatus === "playing" && (
-                  <div
-                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-center text-xs font-bold transition-all ${
-                      isMyTurn
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 shadow-md shadow-emerald-500/10 animate-pulse"
-                        : "border-amber-500/40 bg-amber-500/10 text-amber-300"
-                    }`}
-                  >
-                    <span>{isMyTurn ? "🎯" : "⏳"}</span>
-                    <span>
-                      {isMyTurn
-                        ? "Your Turn — Choose a square to place your symbol"
-                        : "Opponent's Turn — Waiting for rival move..."}
-                    </span>
-                  </div>
-                )}
-
-                {/* Opponent Left Notice Banner */}
-                {gameStatus === "opponent-left" && (
-                  <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-5 text-center shadow-xl">
-                    <div className="text-3xl">🚪</div>
-                    <h3 className="mt-2 text-lg font-bold text-emerald-400">
-                      Opponent Disconnected
-                    </h3>
-                    <p className="mt-1 text-xs text-slate-300">
-                      Your opponent has left the match. You have been awarded the victory!
-                    </p>
-                  </div>
-                )}
-
-                {/* Game Result Screen (When finished normally) */}
-                {game.winner && gameStatus !== "opponent-left" && (
-                  <div
-                    className={`rounded-2xl border p-6 text-center shadow-2xl ${
-                      game.winner === "draw"
-                        ? "border-amber-500/40 bg-amber-500/10"
-                        : game.winner === player
-                          ? "border-emerald-500/40 bg-emerald-500/10"
-                          : "border-rose-500/40 bg-rose-500/10"
-                    }`}
-                  >
-                    <div className="text-4xl">
-                      {game.winner === "draw"
-                        ? "🤝"
-                        : game.winner === player
-                          ? "🏆"
-                          : "💔"}
-                    </div>
-                    <h2
-                      className={`mt-2 text-2xl font-black ${
-                        game.winner === "draw"
-                          ? "text-amber-300"
-                          : game.winner === player
-                            ? "text-emerald-300"
-                            : "text-rose-300"
-                      }`}
-                    >
-                      {game.winner === "draw"
-                        ? "Stalemate — It's a Draw!"
-                        : game.winner === player
-                          ? "VICTORY — You Won!"
-                          : "DEFEAT — You Lost!"}
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-300">
-                      {game.winner === "draw"
-                        ? "Well played from both sides. Ready for a decider?"
-                        : game.winner === player
-                          ? "Great game! Outstanding tactical positioning."
-                          : "Better luck next round! Request a rematch to settle the score."}
-                    </p>
-                  </div>
-                )}
-
-                {/* Interactive Game Board */}
-                <Board game={game} roomId={roomId} player={player} />
-
-                {/* Rematch Section (Only when game is finished and opponent has NOT left) */}
-                {game.winner && gameStatus !== "opponent-left" && (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-center space-y-3">
-                    {rematchError && (
-                      <ErrorMessage
-                        compact
-                        message={rematchError}
-                        onDismiss={() => setRematchError(null)}
-                      />
-                    )}
-                    {opponentRequested && (
-                      <p className="text-xs font-semibold text-indigo-300 animate-pulse">
-                        ⚔️ Your opponent has requested a rematch!
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-center gap-3">
-                      {!opponentRequested && (
-                        <button
-                          onClick={handleRematchRequest}
-                          disabled={waitingForOpponent}
-                          className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {waitingForOpponent
-                            ? "Waiting for opponent..."
-                            : "🔄 Request Rematch"}
-                        </button>
-                      )}
-
-                      {opponentRequested && (
-                        <button
-                          onClick={handleRematchRequest}
-                          className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-500 active:scale-95"
-                        >
-                          ✓ Accept Rematch
-                        </button>
-                      )}
-
-                      <button
-                        onClick={handleLeaveGame}
-                        className="rounded-xl border border-slate-700 bg-slate-800/80 px-5 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
-                      >
-                        Leave Match
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Leave Game button during active match or after opponent left */}
-                {(!game.winner || gameStatus === "opponent-left") && (
-                  <div className="flex justify-center pt-2">
-                    <button
-                      onClick={handleLeaveGame}
-                      className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/20 active:scale-95"
-                    >
-                      Leave Game
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
         </div>
       </div>
     </div>

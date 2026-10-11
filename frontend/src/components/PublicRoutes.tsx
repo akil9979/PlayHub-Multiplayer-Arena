@@ -13,7 +13,7 @@ export default function PublicRoute({ children }: PublicRouteProps) {
   if (isLoading) {
     return (
       <div className="page-shell flex min-h-screen items-center justify-center">
-        <p className="text-sm text-slate-400">Checking authentication...</p>
+        <p className="text-sm text-zinc-400">Checking authentication...</p>
       </div>
     );
   }
