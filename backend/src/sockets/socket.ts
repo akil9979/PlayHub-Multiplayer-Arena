@@ -62,17 +62,20 @@ export function initializeSocket(httpServer: HttpServer) {
     }
   });
 
-  io.on("connection", async (socket) => {
+  io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
     console.log("Authenticated user ID:", socket.userId);
 
-    // Track online user presence
+    // Register online presence without blocking socket event registration.
     if (socket.userId) {
-      const onlineUsers = await onlineUserManager.addUser(
-        socket.userId,
-        socket.id,
-      );
-      io.emit("online-users", onlineUsers);
+      void onlineUserManager
+        .addUser(socket.userId, socket.id)
+        .then((onlineUsers) => {
+          io.emit("online-users", onlineUsers);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to register online user:", error);
+        });
     }
 
     socket.on("get-online-users", () => {

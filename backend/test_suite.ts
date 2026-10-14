@@ -1,215 +1,813 @@
-import http from "http";
+
+import http from "node:http";
+import { randomUUID } from "node:crypto";
 import express from "express";
 import jwt from "jsonwebtoken";
-import { io as Client } from "../frontend/node_modules/socket.io-client/build/esm/index.js";
+import { strict as assert } from "node:assert";
+import { io as Client } from "socket.io-client";
+
 import { initializeSocket } from "./src/sockets/socket";
 import pool from "./src/config/db";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_long_random_secret";
-const TEST_PORT = 5055;
+type TestSocket = ReturnType<typeof Client>;
 
-function createClient(userId: number): ReturnType<typeof Client> {
-  const token = jwt.sign({ userId }, JWT_SECRET);
-  return Client(`http://localhost:${TEST_PORT}`, {
-    extraHeaders: {
-      cookie: `token=${token}`,
-    },
-    autoConnect: true,
-    transports: ["websocket"],
+interface OnlineUser {
+  userId: number;
+  name: string;
+}
+
+interface ChallengeErrorPayload {
+  message: string;
+}
+
+interface ChallengeReceivedPayload {
+  challengeId: string;
+  challenger: {
+    userId: number;
+    name: string;
+  };
+}
+
+interface ChallengeSentPayload {
+  challengeId: string;
+  target: {
+    userId: number;
+    name: string;
+  };
+}
+
+interface ChallengeAcceptedPayload {
+  challengeId: string;
+  roomId: string;
+  player: "circle" | "cross";
+}
+
+interface ChallengeDeclinedPayload {
+  challengeId: string;
+  target: {
+    userId: number;
+    name: string;
+  };
+  reason?: string;
+}
+
+interface GameUpdatedPayload {
+  board: Array<"circle" | "cross" | null>;
+  currentPlayer: "circle" | "cross";
+  winner: "circle" | "cross" | "draw" | null;
+}
+
+interface WaitOptions<T> {
+  timeoutMs?: number;
+  predicate?: (payload: T) => boolean;
+}
+
+const EVENT_TIMEOUT_MS = 5_000;
+
+/**
+ * Fail closed if the dedicated test environment is not configured.
+ * Never silently fall back to a development or production database.
+ */
+function validateTestEnvironment(): string {
+  if (process.env.NODE_ENV !== "test") {
+    throw new Error(
+      "Refusing to run integration tests: NODE_ENV must be 'test'.",
+    );
+  }
+
+  const databaseUrl = process.env.DATABASE_URL;
+  const expectedHost = process.env.TEST_DATABASE_HOST;
+
+  if (!databaseUrl || !expectedHost) {
+    throw new Error(
+      "DATABASE_URL and TEST_DATABASE_HOST must be configured in .env.test.",
+    );
+  }
+
+  let actualHost: string;
+
+  try {
+    actualHost = new URL(databaseUrl).hostname;
+  } catch {
+    throw new Error("DATABASE_URL is not a valid PostgreSQL connection URL.");
+  }
+
+  if (actualHost.toLowerCase() !== expectedHost.toLowerCase()) {
+    throw new Error(
+      "Refusing to run: DATABASE_URL host does not match TEST_DATABASE_HOST.",
+    );
+  }
+
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret || secret.length < 32) {
+    throw new Error(
+      "JWT_SECRET must be a strong, test-only secret of at least 32 characters.",
+    );
+  }
+
+  return secret;
+}
+
+const JWT_SECRET = validateTestEnvironment();
+
+/**
+ * Wait for one Socket.IO event, rejecting on timeout or connection error.
+ *
+ * Register this promise BEFORE emitting the event that should trigger it.
+ */
+function waitForEvent<T>(
+  socket: TestSocket,
+  eventName: string,
+  options: WaitOptions<T> = {},
+): Promise<T> {
+  const timeoutMs = options.timeoutMs ?? EVENT_TIMEOUT_MS;
+
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      socket.off(eventName, onEvent);
+      socket.off("connect_error", onConnectError);
+    };
+
+    const onEvent = (payload: T) => {
+      if (settled) return;
+
+      if (options.predicate && !options.predicate(payload)) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      resolve(payload);
+    };
+
+    const onConnectError = (error: Error) => {
+      if (settled) return;
+
+      settled = true;
+      cleanup();
+
+      reject(
+        new Error(
+          `Socket connection error while waiting for "${eventName}": ${error.message}`,
+        ),
+      );
+    };
+
+    timer = setTimeout(() => {
+      if (settled) return;
+
+      settled = true;
+      cleanup();
+
+      reject(
+        new Error(
+          `Timed out after ${timeoutMs} ms waiting for Socket.IO event "${eventName}".`,
+        ),
+      );
+    }, timeoutMs);
+
+    socket.on(eventName, onEvent);
+    socket.once("connect_error", onConnectError);
   });
 }
 
-async function runTests() {
+/**
+ * Listen for connection and online presence BEFORE connecting.
+ *
+ * The server currently awaits a database lookup during its connection
+ * handler. Waiting for online-users prevents the test from emitting
+ * challenge events before the user has been registered as online.
+ */
+async function connectClientAndWaitForPresence(
+  socket: TestSocket,
+  userId: number,
+): Promise<void> {
+  const connectedPromise = waitForEvent<void>(
+    socket,
+    "connect",
+  );
+
+  const presencePromise = waitForEvent<OnlineUser[]>(
+    socket,
+    "online-users",
+    {
+      predicate: (users) =>
+        Array.isArray(users) &&
+        users.some((user) => user.userId === userId),
+    },
+  );
+
+  socket.connect();
+
+  await Promise.all([connectedPromise, presencePromise]);
+}
+
+/**
+ * Ask the operating system for an available local port instead of relying
+ * on a fixed port that may already be occupied.
+ */
+async function listenOnAvailablePort(
+  server: http.Server,
+): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const onError = (error: Error) => {
+      server.off("listening", onListening);
+      reject(error);
+    };
+
+    const onListening = () => {
+      server.off("error", onError);
+
+      const address = server.address();
+
+      if (!address || typeof address === "string") {
+        reject(new Error("Could not determine the test server port."));
+        return;
+      }
+
+      resolve(address.port);
+    };
+
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(0, "127.0.0.1");
+  });
+}
+
+function createClient(
+  userId: number,
+  port: number,
+): TestSocket {
+  const token = jwt.sign({ userId }, JWT_SECRET);
+
+  return Client(`http://127.0.0.1:${port}`, {
+    autoConnect: false,
+    transports: ["websocket"],
+    extraHeaders: {
+      cookie: `token=${token}`,
+    },
+  });
+}
+
+async function runTests(): Promise<void> {
   console.log("--- Starting PlayHub Challenge Feature Test Suite ---");
 
   const app = express();
   const server = http.createServer(app);
   const ioServer = initializeSocket(server);
 
-  await new Promise<void>((resolve) => server.listen(TEST_PORT, resolve));
-  console.log(`Test server running on port ${TEST_PORT}`);
-
-  const userAId = 10;
-  const userBId = 11;
+  const clients: TestSocket[] = [];
+  let createdUserIds: number[] = [];
+  let testPassed = false;
+  let cleanupSucceeded = true;
 
   try {
-    // ----------------------------------------------------
-    // Scenario 6A: Self-Challenge Prevention
-    // ----------------------------------------------------
-    console.log("\n[TEST 1] Scenario: Self-challenge prevention...");
-    const clientA = createClient(userAId);
-    await new Promise<void>((resolve) => clientA.on("connect", () => resolve()));
+    const testPort = await listenOnAvailablePort(server);
 
-    const selfChallengeError = await new Promise<string>((resolve) => {
-      clientA.on("challenge-error", (err: { message: string }) => {
-        resolve(err.message);
-      });
-      clientA.emit("send-challenge", { targetUserId: userAId });
+    console.log(`Test server running on port ${testPort}`);
+
+    // ----------------------------------------------------
+    // Create two unique test users.
+    // Never depend on hardcoded development user IDs.
+    // ----------------------------------------------------
+
+    const testSuffix = randomUUID().replaceAll("-", "");
+
+    const userAEmail = `challenge-a-${testSuffix}@test.local`;
+    const userBEmail = `challenge-b-${testSuffix}@test.local`;
+
+    console.log("\nCreating isolated integration-test users...");
+
+    const userResult = await pool.query(
+      `INSERT INTO users (name, email, password_hash)
+       VALUES ($1, $2, $3), ($4, $5, $6)
+       RETURNING id, email`,
+      [
+        `ChallengeTestA_${testSuffix}`,
+        userAEmail,
+        "integration-test-placeholder",
+        `ChallengeTestB_${testSuffix}`,
+        userBEmail,
+        "integration-test-placeholder",
+      ],
+    );
+
+    // Record every returned ID before further validation so cleanup
+    // can remove successfully created accounts if validation fails.
+    createdUserIds = userResult.rows
+      .map((row: { id: number | string }) => Number(row.id))
+      .filter((id: number) => Number.isSafeInteger(id) && id > 0);
+
+    const userARecord = userResult.rows.find(
+      (row: { id: number | string; email: string }) =>
+        row.email === userAEmail,
+    );
+
+    const userBRecord = userResult.rows.find(
+      (row: { id: number | string; email: string }) =>
+        row.email === userBEmail,
+    );
+
+    if (!userARecord || !userBRecord || createdUserIds.length !== 2) {
+      throw new Error(
+        "Could not create and identify both integration-test users.",
+      );
+    }
+
+    const userAId = Number(userARecord.id);
+    const userBId = Number(userBRecord.id);
+
+    assert.ok(userAId > 0, "User A must have a valid database ID.");
+    assert.ok(userBId > 0, "User B must have a valid database ID.");
+    assert.notEqual(userAId, userBId, "Test users must be distinct.");
+
+    console.log("Created two isolated test users.");
+
+    // ----------------------------------------------------
+    // Connect User A and wait for server-side presence.
+    // ----------------------------------------------------
+
+    const clientA = createClient(userAId, testPort);
+    clients.push(clientA);
+
+    await connectClientAndWaitForPresence(clientA, userAId);
+
+    // ----------------------------------------------------
+    // TEST 1: Self-challenge prevention
+    // ----------------------------------------------------
+
+    console.log("\n[TEST 1] Self-challenge prevention...");
+
+    const selfChallengePromise =
+      waitForEvent<ChallengeErrorPayload>(
+        clientA,
+        "challenge-error",
+      );
+
+    clientA.emit("send-challenge", {
+      targetUserId: userAId,
     });
-    console.log(`✓ Self-challenge was prevented: "${selfChallengeError}"`);
+
+    const selfChallengeError = await selfChallengePromise;
+
+    assert.equal(
+      selfChallengeError.message,
+      "You cannot challenge yourself.",
+    );
+
+    console.log("PASS: Self-challenge was rejected.");
 
     // ----------------------------------------------------
-    // Scenario 5: User B is offline
+    // TEST 2: Challenge an offline player
+    // User B exists in the database but is not connected.
     // ----------------------------------------------------
-    console.log("\n[TEST 2] Scenario: Target user is offline...");
-    const offlineError = await new Promise<string>((resolve) => {
-      clientA.once("challenge-error", (err: { message: string }) => {
-        resolve(err.message);
-      });
-      clientA.emit("send-challenge", { targetUserId: userBId });
-    });
-    console.log(`✓ Offline target handled: "${offlineError}"`);
 
-    // ----------------------------------------------------
-    // Connect User B
-    // ----------------------------------------------------
-    const clientB = createClient(userBId);
-    await new Promise<void>((resolve) => clientB.on("connect", () => resolve()));
-    // Small delay to ensure both are registered in onlineUserManager
-    await new Promise((r) => setTimeout(r, 200));
+    console.log("\n[TEST 2] Challenge to an offline player...");
 
-    // ----------------------------------------------------
-    // Scenario 1 & 2 & 3: User A challenges User B, User B accepts, both enter game
-    // ----------------------------------------------------
-    console.log("\n[TEST 3] Scenario: User A challenges User B, User B accepts...");
-    let challengeId = "";
+    const offlineErrorPromise =
+      waitForEvent<ChallengeErrorPayload>(
+        clientA,
+        "challenge-error",
+      );
 
-    const challengeReceivedPromise = new Promise<any>((resolve) => {
-      clientB.once("challenge-received", (data: any) => {
-        resolve(data);
-      });
+    clientA.emit("send-challenge", {
+      targetUserId: userBId,
     });
 
-    clientA.emit("send-challenge", { targetUserId: userBId });
-    const receivedPayload = await challengeReceivedPromise;
-    challengeId = receivedPayload.challengeId;
-    console.log(`✓ User B received challenge ID: ${challengeId} from User A (#${receivedPayload.challenger.userId})`);
+    const offlineError = await offlineErrorPromise;
+
+    assert.equal(
+      offlineError.message,
+      "Player is currently offline.",
+    );
+
+    console.log("PASS: Offline player was rejected.");
 
     // ----------------------------------------------------
-    // Scenario 6B: Duplicate challenge prevention while pending
+    // Connect User B and wait for presence.
     // ----------------------------------------------------
-    console.log("\n[TEST 4] Scenario: Duplicate challenge prevention...");
-    const duplicateErrorPromise = new Promise<string>((resolve) => {
-      clientA.once("challenge-error", (err: { message: string }) => {
-        resolve(err.message);
-      });
+
+    const clientB = createClient(userBId, testPort);
+    clients.push(clientB);
+
+    await connectClientAndWaitForPresence(clientB, userBId);
+
+    // ----------------------------------------------------
+    // TEST 3: Send a challenge and receive it.
+    // ----------------------------------------------------
+
+    console.log("\n[TEST 3] Send and receive challenge...");
+
+    const challengeReceivedPromise =
+      waitForEvent<ChallengeReceivedPayload>(
+        clientB,
+        "challenge-received",
+      );
+
+    const challengeSentPromise =
+      waitForEvent<ChallengeSentPayload>(
+        clientA,
+        "challenge-sent",
+      );
+
+    clientA.emit("send-challenge", {
+      targetUserId: userBId,
     });
-    clientA.emit("send-challenge", { targetUserId: userBId });
+
+    const [receivedPayload, sentPayload] = await Promise.all([
+      challengeReceivedPromise,
+      challengeSentPromise,
+    ]);
+
+    assert.ok(
+      receivedPayload.challengeId,
+      "Received challenge must have an ID.",
+    );
+
+    assert.equal(
+      receivedPayload.challenger.userId,
+      userAId,
+    );
+
+    assert.equal(
+      sentPayload.challengeId,
+      receivedPayload.challengeId,
+      "Sender and recipient must receive the same challenge ID.",
+    );
+
+    const challengeId = receivedPayload.challengeId;
+
+    console.log("PASS: Challenge delivered to User B.");
+
+    // ----------------------------------------------------
+    // TEST 4: Prevent a duplicate pending challenge.
+    // ----------------------------------------------------
+
+    console.log("\n[TEST 4] Duplicate challenge prevention...");
+
+    const duplicateErrorPromise =
+      waitForEvent<ChallengeErrorPayload>(
+        clientA,
+        "challenge-error",
+      );
+
+    clientA.emit("send-challenge", {
+      targetUserId: userBId,
+    });
+
     const duplicateError = await duplicateErrorPromise;
-    console.log(`✓ Duplicate challenge prevented: "${duplicateError}"`);
+
+    assert.equal(
+      duplicateError.message,
+      "A challenge is already pending with this player.",
+    );
+
+    console.log("PASS: Duplicate challenge was rejected.");
 
     // ----------------------------------------------------
-    // User B accepts
+    // TEST 5: Accept a challenge and create a match.
     // ----------------------------------------------------
-    console.log("\n[TEST 5] User B accepts challenge...");
-    const acceptPromiseA = new Promise<any>((resolve) => {
-      clientA.once("challenge-accepted", (data: any) => resolve(data));
+
+    console.log("\n[TEST 5] Accept challenge and create match...");
+
+    const acceptedByA =
+      waitForEvent<ChallengeAcceptedPayload>(
+        clientA,
+        "challenge-accepted",
+      );
+
+    const acceptedByB =
+      waitForEvent<ChallengeAcceptedPayload>(
+        clientB,
+        "challenge-accepted",
+      );
+
+    clientB.emit("accept-challenge", {
+      challengeId,
     });
-    const acceptPromiseB = new Promise<any>((resolve) => {
-      clientB.once("challenge-accepted", (data: any) => resolve(data));
+
+    const [acceptedA, acceptedB] = await Promise.all([
+      acceptedByA,
+      acceptedByB,
+    ]);
+
+    assert.ok(acceptedA.roomId, "Room ID must not be empty.");
+
+    assert.equal(
+      acceptedA.roomId,
+      acceptedB.roomId,
+      "Both players must enter the same room.",
+    );
+
+    assert.equal(acceptedA.player, "circle");
+    assert.equal(acceptedB.player, "cross");
+
+    assert.equal(
+      acceptedA.challengeId,
+      challengeId,
+    );
+
+    assert.equal(
+      acceptedB.challengeId,
+      challengeId,
+    );
+
+    console.log("PASS: Both players entered the same room.");
+    console.log("PASS: Player symbols were assigned correctly.");
+
+    // ----------------------------------------------------
+    // TEST 6: Synchronize a move between both players.
+    // ----------------------------------------------------
+
+    console.log("\n[TEST 6] Multiplayer move synchronization...");
+
+    const moveUpdatedPromise =
+      waitForEvent<GameUpdatedPayload>(
+        clientB,
+        "game-updated",
+      );
+
+    clientA.emit("make-move", {
+      roomId: acceptedA.roomId,
+      index: 0,
     });
 
-    clientB.emit("accept-challenge", { challengeId });
+    const updatedGame = await moveUpdatedPromise;
 
-    const [acceptedA, acceptedB] = await Promise.all([acceptPromiseA, acceptPromiseB]);
-    console.log(`✓ User A accepted payload: Room ${acceptedA.roomId}, Player: ${acceptedA.player}`);
-    console.log(`✓ User B accepted payload: Room ${acceptedB.roomId}, Player: ${acceptedB.player}`);
+    assert.equal(
+      updatedGame.board[0],
+      "circle",
+      "The first move should place circle at index 0.",
+    );
 
-    if (acceptedA.roomId !== acceptedB.roomId) {
-      throw new Error("Room IDs do not match!");
-    }
-    if (acceptedA.player !== "circle" || acceptedB.player !== "cross") {
-      throw new Error("Player symbol assignments incorrect!");
-    }
-    console.log("✓ Both players entered the same room with correct symbols (Circle & Cross)!");
+    assert.equal(
+      updatedGame.currentPlayer,
+      "cross",
+      "The turn should pass to cross.",
+    );
 
-    // Verify move syncing
-    console.log("\n[TEST 6] Verifying move sync in challenge match room...");
-    const movePromiseB = new Promise<any>((resolve) => {
-      clientB.once("game-updated", (game: any) => resolve(game));
-    });
-    clientA.emit("make-move", { roomId: acceptedA.roomId, index: 0 });
-    const updatedGame = await movePromiseB;
-    console.log(`✓ Board updated at index 0 to ${updatedGame.board[0]}, next player: ${updatedGame.currentPlayer}`);
+    console.log("PASS: The move reached User B.");
+    console.log("PASS: Board state and turn were updated.");
 
-    // Leave game to clean room
+    // End this game through the existing leave-game flow.
+    // Wait for the server's notification instead of sleeping.
+    const gameLeaveNotice =
+      waitForEvent<GameUpdatedPayload>(
+        clientB,
+        "player-disconnected",
+      );
+
     clientA.emit("leave-game", acceptedA.roomId);
+
+    await gameLeaveNotice;
+
     clientB.emit("leave-game", acceptedB.roomId);
-    await new Promise((r) => setTimeout(r, 200));
 
     // ----------------------------------------------------
-    // Scenario 4: User A challenges User B, User B declines
+    // TEST 7: Decline a challenge.
     // ----------------------------------------------------
-    console.log("\n[TEST 7] Scenario: User A challenges User B, User B declines...");
-    const challengeReceived2 = new Promise<any>((resolve) => {
-      clientB.once("challenge-received", (data: any) => resolve(data));
-    });
-    clientA.emit("send-challenge", { targetUserId: userBId });
-    const rec2 = await challengeReceived2;
 
-    const declinePromiseA = new Promise<any>((resolve) => {
-      clientA.once("challenge-declined", (data: any) => resolve(data));
+    console.log("\n[TEST 7] Challenge decline...");
+
+    const secondChallengeReceived =
+      waitForEvent<ChallengeReceivedPayload>(
+        clientB,
+        "challenge-received",
+      );
+
+    clientA.emit("send-challenge", {
+      targetUserId: userBId,
     });
-    clientB.emit("decline-challenge", { challengeId: rec2.challengeId });
-    const declinedData = await declinePromiseA;
-    console.log(`✓ User A received decline notification: ${declinedData.target.name} declined`);
+
+    const secondChallenge = await secondChallengeReceived;
+
+    const declineNoticePromise =
+      waitForEvent<ChallengeDeclinedPayload>(
+        clientA,
+        "challenge-declined",
+      );
+
+    clientB.emit("decline-challenge", {
+      challengeId: secondChallenge.challengeId,
+    });
+
+    const declineNotice = await declineNoticePromise;
+
+    assert.equal(
+      declineNotice.challengeId,
+      secondChallenge.challengeId,
+    );
+
+    assert.equal(
+      declineNotice.target.userId,
+      userBId,
+    );
+
+    console.log("PASS: Challenger was notified of the decline.");
 
     // ----------------------------------------------------
-    // Scenario 5: User B disconnects while challenge is pending
+    // TEST 8: Notify the challenger when User B disconnects
+    // while a challenge is pending.
     // ----------------------------------------------------
-    console.log("\n[TEST 8] Scenario: User B disconnects while challenge is pending...");
-    const challengeReceived3 = new Promise<any>((resolve) => {
-      clientB.once("challenge-received", (data: any) => resolve(data));
-    });
-    clientA.emit("send-challenge", { targetUserId: userBId });
-    await challengeReceived3;
 
-    const disconnectNoticePromise = new Promise<any>((resolve) => {
-      clientA.once("challenge-declined", (data: any) => resolve(data));
+    console.log("\n[TEST 8] Disconnect during a pending challenge...");
+
+    const thirdChallengeReceived =
+      waitForEvent<ChallengeReceivedPayload>(
+        clientB,
+        "challenge-received",
+      );
+
+    clientA.emit("send-challenge", {
+      targetUserId: userBId,
     });
-    // Disconnect User B
+
+    const thirdChallenge = await thirdChallengeReceived;
+
+    assert.ok(thirdChallenge.challengeId);
+
+    // Register both waits before disconnecting User B.
+    const disconnectNoticePromise =
+      waitForEvent<ChallengeDeclinedPayload>(
+        clientA,
+        "challenge-declined",
+      );
+
+    const userBOfflinePromise =
+      waitForEvent<OnlineUser[]>(
+        clientA,
+        "online-users",
+        {
+          predicate: (users) =>
+            Array.isArray(users) &&
+            !users.some((user) => user.userId === userBId),
+        },
+      );
+
     clientB.disconnect();
-    const disconnectNotice = await disconnectNoticePromise;
-    console.log(`✓ Challenger was notified of target departure: ${disconnectNotice.reason}`);
+
+    const [disconnectNotice] = await Promise.all([
+      disconnectNoticePromise,
+      userBOfflinePromise,
+    ]);
+
+    assert.equal(
+      disconnectNotice.challengeId,
+      thirdChallenge.challengeId,
+    );
+
+    assert.equal(
+      disconnectNotice.reason,
+      "Player went offline",
+    );
+
+    console.log("PASS: Challenger received the disconnect notice.");
+    console.log("PASS: User B was removed from online presence.");
 
     // ----------------------------------------------------
-    // Scenario 7: Existing manual room create / join still works
+    // TEST 9: Verify manual room creation and joining.
+    // Reconnect User B using a new socket.
     // ----------------------------------------------------
-    console.log("\n[TEST 9] Scenario: Existing manual room creation / joining...");
-    const clientB2 = createClient(userBId);
-    await new Promise<void>((resolve) => clientB2.on("connect", () => resolve()));
 
-    const manualRoomCreatedPromise = new Promise<string>((resolve) => {
-      clientA.once("room-created", (roomId: string) => resolve(roomId));
-    });
+    console.log("\n[TEST 9] Manual room creation and joining...");
+
+    const clientB2 = createClient(userBId, testPort);
+    clients.push(clientB2);
+
+    await connectClientAndWaitForPresence(clientB2, userBId);
+
+    const roomCreatedPromise =
+      waitForEvent<string>(
+        clientA,
+        "room-created",
+      );
+
     clientA.emit("create-room");
-    const manualRoomId = await manualRoomCreatedPromise;
-    console.log(`✓ Manual room created: ${manualRoomId}`);
 
-    const manualJoinedPromise = new Promise<string>((resolve) => {
-      clientB2.once("room-joined", (roomId: string) => resolve(roomId));
-    });
+    const manualRoomId = await roomCreatedPromise;
+
+    assert.ok(
+      manualRoomId,
+      "Manual room creation must return a room ID.",
+    );
+
+    const roomJoinedPromise =
+      waitForEvent<string>(
+        clientB2,
+        "room-joined",
+      );
+
     clientB2.emit("join-room", manualRoomId);
-    const joinedRoomId = await manualJoinedPromise;
-    console.log(`✓ Manual room joined: ${joinedRoomId}`);
 
-    clientA.emit("leave-game", manualRoomId);
-    clientB2.emit("leave-game", joinedRoomId);
+    const joinedRoomId = await roomJoinedPromise;
 
-    // Clean up connections
-    clientA.disconnect();
-    clientB2.disconnect();
-    await new Promise((r) => server.close(r));
-    await pool.end();
+    assert.equal(
+      joinedRoomId,
+      manualRoomId,
+      "The joining player must enter the requested room.",
+    );
 
+    console.log("PASS: Manual room was created.");
+    console.log("PASS: Second player joined the room.");
+
+    // Persisted rows and any remaining in-memory room state are handled
+    // by the final cleanup below.
+
+    testPassed = true;
+  } catch (error) {
+    console.error("\nTest suite failed:", error);
+    process.exitCode = 1;
+  } finally {
+    // ----------------------------------------------------
+    // Disconnect clients and close the temporary Socket.IO server.
+    // ----------------------------------------------------
+
+    for (const client of clients) {
+      try {
+        if (client.connected) {
+          client.disconnect();
+        }
+      } catch (error) {
+        cleanupSucceeded = false;
+        console.error("Failed to disconnect a test client:", error);
+      }
+    }
+
+    try {
+      await new Promise<void>((resolve) => {
+        ioServer.close(() => resolve());
+      });
+    } catch (error) {
+      cleanupSucceeded = false;
+      console.error("Failed to close the test server:", error);
+    }
+
+    // ----------------------------------------------------
+    // Delete only test games and users created by this run.
+    // Existing development accounts and their games are untouched.
+    // ----------------------------------------------------
+
+    try {
+      if (createdUserIds.length > 0) {
+        await pool.query(
+          `DELETE FROM games
+           WHERE circle_user_id = ANY($1::int[])
+              OR cross_user_id = ANY($1::int[])`,
+          [createdUserIds],
+        );
+
+        await pool.query(
+          `DELETE FROM users
+           WHERE id = ANY($1::int[])`,
+          [createdUserIds],
+        );
+
+        console.log(
+          "Temporary test users and associated game records cleaned up.",
+        );
+      }
+    } catch (error) {
+      cleanupSucceeded = false;
+      process.exitCode = 1;
+
+      console.error(
+        "Test database cleanup failed. Check for leftover test records.",
+        error,
+      );
+    } finally {
+      try {
+        await pool.end();
+      } catch (error) {
+        cleanupSucceeded = false;
+        process.exitCode = 1;
+        console.error("Failed to close the PostgreSQL pool:", error);
+      }
+    }
+  }
+
+  if (testPassed && cleanupSucceeded) {
     console.log("\n==========================================");
     console.log("ALL 9 TEST SCENARIOS PASSED SUCCESSFULLY!");
+    console.log("Test server and database pool closed.");
+    console.log("Test records cleaned up.");
     console.log("==========================================");
-    process.exit(0);
-  } catch (err) {
-    console.error("Test Suite Failed:", err);
-    process.exit(1);
+  } else {
+    process.exitCode = 1;
+
+    if (testPassed && !cleanupSucceeded) {
+      console.error(
+        "Scenarios passed, but cleanup was not fully successful.",
+      );
+    }
   }
 }
 
-runTests();
+runTests().catch((error) => {
+  console.error("Unexpected test runner failure:", error);
+  process.exitCode = 1;
+});
