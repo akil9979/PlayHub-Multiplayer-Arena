@@ -7,15 +7,33 @@ import Navbar from "../components/Navbar";
 import ErrorMessage from "../components/common/ErrorMessage";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { getErrorMessage } from "../utils/apiError";
+import {
+  normalizeEmail,
+  validateEmail,
+  validateLoginPassword,
+} from "../utils/validation";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string | null; password?: string | null }>({});
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const validateForm = (): boolean => {
+    const emailErr = validateEmail(email);
+    const passErr = validateLoginPassword(password);
+
+    setErrors({
+      email: emailErr,
+      password: passErr,
+    });
+
+    return !emailErr && !passErr;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,15 +41,14 @@ function Login() {
 
     setError(null);
 
-    if (!email.trim() || !password.trim()) {
-      setError("Email and password are required.");
+    if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
     try {
       const response = await api.post("/users/login", {
-        email: email.trim(),
+        email: normalizeEmail(email),
         password,
       });
 
@@ -111,13 +128,31 @@ function Login() {
                   id="login-email"
                   type="email"
                   autoComplete="email"
+                  maxLength={254}
+                  spellCheck={false}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEmail(val);
+                    if (errors.email && validateEmail(val) === null) {
+                      setErrors((prev) => ({ ...prev, email: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+                  }}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "login-email-error" : undefined}
                   placeholder="you@example.com"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.email && (
+                  <p id="login-email-error" role="alert" className="text-xs text-rose-400 mt-1">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -128,13 +163,30 @@ function Login() {
                   id="login-password"
                   type="password"
                   autoComplete="current-password"
+                  maxLength={72}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPassword(val);
+                    if (errors.password && validateLoginPassword(val) === null) {
+                      setErrors((prev) => ({ ...prev, password: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({ ...prev, password: validateLoginPassword(password) }));
+                  }}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "login-password-error" : undefined}
                   placeholder="Enter your password"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.password && (
+                  <p id="login-password-error" role="alert" className="text-xs text-rose-400 mt-1">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <button

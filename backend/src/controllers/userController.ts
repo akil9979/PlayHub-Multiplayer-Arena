@@ -6,9 +6,13 @@ import type { AuthRequest } from "../middleware/auth.middleware";
 import { getUserGameHistory, getUserGameStats, getLeaderboard } from "../models/gameModel";
 import { config } from "../config/env";
 import {
-  isValidEmail,
-  isValidName,
-  isValidPassword,
+  isPositiveInteger,
+  normalizeEmail,
+  normalizeName,
+  validateEmail,
+  validateLoginPassword,
+  validateName,
+  validatePassword,
 } from "../utils/validation";
 
 const generateToken = (userId: number) => {
@@ -16,21 +20,45 @@ const generateToken = (userId: number) => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  const { name, email, password } = req.body as {
-    name?: unknown;
-    email?: unknown;
-    password?: unknown;
-  };
-  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
-
-  if (!isValidName(name) || !isValidEmail(normalizedEmail) || !isValidPassword(password)) {
+  if (
+    !req.body ||
+    typeof req.body !== "object" ||
+    typeof (req.body as Record<string, unknown>).name !== "string" ||
+    typeof (req.body as Record<string, unknown>).email !== "string" ||
+    typeof (req.body as Record<string, unknown>).password !== "string"
+  ) {
     return res.status(400).json({
-      message: "Please provide a valid name, email, and password of 6 to 128 characters.",
+      message: "Please provide a valid name, email, and password.",
     });
   }
+
+  const { name, email, password } = req.body as {
+    name: string;
+    email: string;
+    password: string;
+  };
+
+  const nameError = validateName(name);
+  if (nameError) {
+    return res.status(400).json({ message: nameError });
+  }
+
+  const emailError = validateEmail(email);
+  if (emailError) {
+    return res.status(400).json({ message: emailError });
+  }
+
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return res.status(400).json({ message: passwordError });
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const normalizedName = normalizeName(name);
+
   try {
     const existingUser = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
+      "SELECT id FROM users WHERE LOWER(email) = $1",
       [normalizedEmail],
     );
     if (existingUser.rows.length > 0) {
@@ -43,7 +71,7 @@ export const createUser = async (req: Request, res: Response) => {
       `INSERT INTO users (name, email, password_hash)
    VALUES ($1, $2, $3)
    RETURNING id, name, email, created_at`,
-      [name.trim(), normalizedEmail, hashedPassword],
+      [normalizedName, normalizedEmail, hashedPassword],
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -51,21 +79,38 @@ export const createUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Unable to create account. Please try again." });
   }
 };
+
 export const loginUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body as {
-    email?: unknown;
-    password?: unknown;
-  };
-  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
-  if (!isValidEmail(normalizedEmail) || !isValidPassword(password)) {
+  if (
+    !req.body ||
+    typeof req.body !== "object" ||
+    typeof (req.body as Record<string, unknown>).email !== "string" ||
+    typeof (req.body as Record<string, unknown>).password !== "string"
+  ) {
     return res.status(400).json({
       message: "Please provide a valid email and password.",
     });
   }
 
+  const { email, password } = req.body as {
+    email: string;
+    password: string;
+  };
+
+  const emailError = validateEmail(email);
+  const passwordError = validateLoginPassword(password);
+
+  if (emailError || passwordError) {
+    return res.status(400).json({
+      message: "Please provide a valid email and password.",
+    });
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+
   try {
     const result = await pool.query(
-      "SELECT id, name, email, password_hash, created_at FROM users WHERE email = $1",
+      "SELECT id, name, email, password_hash, created_at FROM users WHERE LOWER(email) = $1",
       [normalizedEmail],
     );
     if (result.rows.length === 0) {
@@ -77,7 +122,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid email or password.",
       });
     }
     const token = generateToken(user.id);

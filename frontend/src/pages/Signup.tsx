@@ -5,17 +5,52 @@ import Navbar from "../components/Navbar";
 import ErrorMessage from "../components/common/ErrorMessage";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { getErrorMessage } from "../utils/apiError";
+import {
+  normalizeEmail,
+  normalizeName,
+  validateEmail,
+  validateName,
+  validatePassword,
+} from "../utils/validation";
 
 function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<{
+    name?: string | null;
+    email?: string | null;
+    password?: string | null;
+    confirmPassword?: string | null;
+  }>({});
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
+
+  const validateConfirmPassword = (confirm: string, pass: string): string | null => {
+    if (!confirm) return "Please confirm your password.";
+    if (confirm !== pass) return "Passwords do not match.";
+    return null;
+  };
+
+  const validateForm = (): boolean => {
+    const nameErr = validateName(name);
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+    const confirmErr = validateConfirmPassword(confirmPassword, password);
+
+    setErrors({
+      name: nameErr,
+      email: emailErr,
+      password: passwordErr,
+      confirmPassword: confirmErr,
+    });
+
+    return !nameErr && !emailErr && !passwordErr && !confirmErr;
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,36 +59,15 @@ function Signup() {
     setError(null);
     setSuccess(null);
 
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-
-    if (!trimmedName || !trimmedEmail || !password.trim()) {
-      setError("All fields are required.");
-      return;
-    }
-
-    // Basic email format check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
     try {
       await api.post("/users/create", {
-        name: trimmedName,
-        email: trimmedEmail,
+        name: normalizeName(name),
+        email: normalizeEmail(email),
         password,
       });
 
@@ -62,6 +76,7 @@ function Signup() {
       setEmail("");
       setPassword("");
       setConfirmPassword("");
+      setErrors({});
 
       setTimeout(() => {
         navigate("/login");
@@ -145,13 +160,30 @@ function Signup() {
                   id="signup-name"
                   type="text"
                   autoComplete="name"
+                  maxLength={30}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setName(val);
+                    if (errors.name && validateName(val) === null) {
+                      setErrors((prev) => ({ ...prev, name: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({ ...prev, name: validateName(name) }));
+                  }}
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? "signup-name-error" : undefined}
                   placeholder="Display name"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.name && (
+                  <p id="signup-name-error" role="alert" className="text-xs text-rose-400 mt-1">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -162,13 +194,31 @@ function Signup() {
                   id="signup-email"
                   type="email"
                   autoComplete="email"
+                  maxLength={254}
+                  spellCheck={false}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEmail(val);
+                    if (errors.email && validateEmail(val) === null) {
+                      setErrors((prev) => ({ ...prev, email: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+                  }}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "signup-email-error" : undefined}
                   placeholder="you@example.com"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.email && (
+                  <p id="signup-email-error" role="alert" className="text-xs text-rose-400 mt-1">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -180,12 +230,31 @@ function Signup() {
                   type="password"
                   autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPassword(val);
+                    if (errors.password && validatePassword(val) === null) {
+                      setErrors((prev) => ({ ...prev, password: null }));
+                    }
+                    if (confirmPassword && errors.confirmPassword && val === confirmPassword) {
+                      setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+                  }}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "signup-password-error" : undefined}
+                  placeholder="At least 8 characters"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.password && (
+                  <p id="signup-password-error" role="alert" className="text-xs text-rose-400 mt-1">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -200,12 +269,35 @@ function Signup() {
                   type="password"
                   autoComplete="new-password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setConfirmPassword(val);
+                    if (errors.confirmPassword && validateConfirmPassword(val, password) === null) {
+                      setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setErrors((prev) => ({
+                      ...prev,
+                      confirmPassword: validateConfirmPassword(confirmPassword, password),
+                    }));
+                  }}
+                  aria-invalid={!!errors.confirmPassword}
+                  aria-describedby={errors.confirmPassword ? "signup-confirm-password-error" : undefined}
                   placeholder="Re-enter password"
                   className="input-field"
                   disabled={isSubmitting}
                   required
                 />
+                {errors.confirmPassword && (
+                  <p
+                    id="signup-confirm-password-error"
+                    role="alert"
+                    className="text-xs text-rose-400 mt-1"
+                  >
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <button

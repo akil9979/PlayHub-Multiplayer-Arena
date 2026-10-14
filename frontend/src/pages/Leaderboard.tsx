@@ -279,6 +279,7 @@ export default function Leaderboard() {
               <div className="relative">
                 <input
                   type="text"
+                  maxLength={50}
                   placeholder="Search player name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

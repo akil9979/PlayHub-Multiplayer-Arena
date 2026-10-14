@@ -10,6 +10,7 @@ import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useSocketStatus } from "../utils/useSocketStatus";
 import type { Game as GameType, Player } from "../types/gameType";
 import { useAppSelector } from "../redux/hook";
+import { normalizeRoomCode, validateRoomCode } from "../utils/validation";
 
 type GameStatus =
   | "idle"
@@ -42,6 +43,7 @@ function Game() {
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
   const [lobbyError, setLobbyError] = useState<string | null>(null);
+  const [roomError, setRoomError] = useState<string | null>(null);
   const [rematchError, setRematchError] = useState<string | null>(null);
 
   const [gameStatus, setGameStatus] = useState<GameStatus>(
@@ -97,11 +99,14 @@ function Game() {
       return;
     }
 
-    if (!roomInput.trim()) {
-      setLobbyError("Please enter a room code.");
+    const code = normalizeRoomCode(roomInput);
+    const codeError = validateRoomCode(code);
+    if (codeError) {
+      setRoomError(codeError);
       return;
     }
 
+    setRoomError(null);
     setLobbyError(null);
     setIsJoiningRoom(true);
     setGame(null);
@@ -110,7 +115,7 @@ function Game() {
     setWaitingForOpponent(false);
     setGameStatus("idle");
 
-    socket.emit("join-room", roomInput.trim());
+    socket.emit("join-room", code);
   };
 
   const handleRematchRequest = () => {
@@ -691,14 +696,37 @@ function Game() {
                       <input
                         value={roomInput}
                         onChange={(e) => {
-                          setRoomInput(e.target.value.toUpperCase());
+                          const val = e.target.value.toUpperCase();
+                          setRoomInput(val);
                           if (lobbyError) setLobbyError(null);
+                          if (roomError && validateRoomCode(val) === null) {
+                            setRoomError(null);
+                          }
                         }}
+                        onBlur={() => {
+                          if (roomInput.trim()) {
+                            setRoomError(validateRoomCode(roomInput));
+                          }
+                        }}
+                        aria-invalid={!!roomError}
+                        aria-describedby={roomError ? "join-room-error" : undefined}
                         placeholder="Enter 6-character code"
-                        maxLength={12}
+                        maxLength={6}
+                        inputMode="text"
+                        autoCapitalize="characters"
+                        spellCheck={false}
                         disabled={isCreatingRoom || isJoiningRoom}
-                        className="w-full min-h-[44px] rounded-lg border border-[#27272a] bg-[#111113] px-3.5 py-2.5 text-xs text-[#fafafa] placeholder:text-[#71717a] focus:border-[#22c55e] focus:outline-none uppercase font-mono tracking-wider"
+                        className={`w-full min-h-[44px] rounded-lg border bg-[#111113] px-3.5 py-2.5 text-xs text-[#fafafa] placeholder:text-[#71717a] focus:outline-none uppercase font-mono tracking-wider transition ${
+                          roomError
+                            ? "border-rose-500 focus:border-rose-500"
+                            : "border-[#27272a] focus:border-[#22c55e]"
+                        }`}
                       />
+                      {roomError && (
+                        <p id="join-room-error" role="alert" className="text-xs text-rose-400 mt-1">
+                          {roomError}
+                        </p>
+                      )}
                       <button
                         onClick={joinRoom}
                         disabled={!isConnected || isCreatingRoom || isJoiningRoom || !roomInput.trim()}

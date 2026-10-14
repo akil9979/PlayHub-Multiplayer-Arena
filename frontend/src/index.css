@@ -134,6 +134,15 @@
     box-shadow: 0 0 0 1px #22c55e;
   }
 
+  .input-field[aria-invalid="true"] {
+    border-color: #f43f5e;
+  }
+
+  .input-field[aria-invalid="true"]:focus {
+    border-color: #f43f5e;
+    box-shadow: 0 0 0 1px #f43f5e;
+  }
+
   .animate-fade-in {
     animation: fade-in 0.25s ease-out both;
   }
