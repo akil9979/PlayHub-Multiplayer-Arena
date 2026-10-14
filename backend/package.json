@@ -6,8 +6,12 @@
   "scripts": {
     "build": "tsc --noEmit",
     "start": "tsx src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:challenges": "node --env-file=.env.test --import tsx test_suite.ts",
+    "test:leaderboard": "node --env-file=.env.test --import tsx test_leaderboard.ts",
+    "test:api": "node --env-file=.env.test ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +38,10 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.1.1",
     "@types/pg": "^8.20.0",
-    "typescript": "^7.0.2"
+    "@types/supertest": "^7.2.1",
+    "socket.io-client": "^4.8.4",
+    "supertest": "^7.3.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
   }
 }
