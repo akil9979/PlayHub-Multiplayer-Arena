@@ -34,4 +34,9 @@ export type DisconnectResult =
       type: "active-game";
       roomId: string;
       game: Game;
+    }
+  | {
+      type: "finished-game";
+      roomId: string;
+      game: Game;
     };

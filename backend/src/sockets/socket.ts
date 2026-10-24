@@ -520,6 +520,14 @@ export function initializeSocket(httpServer: HttpServer) {
           return;
         }
 
+        if (result.type === "finished-game") {
+          io.to(result.roomId).emit(
+            "player-left-finished-game",
+            result.game,
+          );
+          return;
+        }
+
         await updateGameResult(result.roomId, result.game.winner!);
 
         io.to(result.roomId).emit("player-disconnected", result.game);

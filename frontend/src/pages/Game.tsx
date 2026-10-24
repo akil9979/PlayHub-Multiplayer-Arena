@@ -17,7 +17,8 @@ type GameStatus =
   | "waiting"
   | "playing"
   | "finished"
-  | "opponent-left";
+  | "opponent-left"
+  | "opponent-disconnected";
 
 function Game() {
   const navigate = useNavigate();
@@ -120,7 +121,9 @@ function Game() {
 
   const handleRematchRequest = () => {
     if (!socket.connected) {
-      setRematchError("Connection to the game server is unavailable. Please reconnect and try again.");
+      setRematchError(
+        "Connection to the game server is unavailable. Please reconnect and try again.",
+      );
       return;
     }
 
@@ -200,7 +203,9 @@ function Game() {
 
     const handleRoomNotFound = () => {
       setIsJoiningRoom(false);
-      setLobbyError("Room not found! Please check the room code and try again.");
+      setLobbyError(
+        "Room not found! Please check the room code and try again.",
+      );
     };
 
     const handleRoomFull = () => {
@@ -240,6 +245,13 @@ function Game() {
       setGameStatus("opponent-left");
       setOpponentRequested(false);
       setWaitingForOpponent(false);
+    };
+    const handlePlayerLeftFinishedGame = (updatedGame: GameType) => {
+      setGame(updatedGame);
+      setGameStatus("opponent-disconnected");
+      setOpponentRequested(false);
+      setWaitingForOpponent(false);
+      setRematchError(null);
     };
 
     const handleRematchRequested = () => {
@@ -281,6 +293,7 @@ function Game() {
 
     socket.on("game-updated", handleGameUpdated);
     socket.on("player-disconnected", handlePlayerDisconnected);
+    socket.on("player-left-finished-game", handlePlayerLeftFinishedGame);
 
     socket.on("rematch-requested", handleRematchRequested);
     socket.on("rematch-accepted", handleRematchAccepted);
@@ -302,6 +315,7 @@ function Game() {
 
       socket.off("game-updated", handleGameUpdated);
       socket.off("player-disconnected", handlePlayerDisconnected);
+      socket.off("player-left-finished-game", handlePlayerLeftFinishedGame);
 
       socket.off("rematch-requested", handleRematchRequested);
       socket.off("rematch-accepted", handleRematchAccepted);
@@ -309,12 +323,14 @@ function Game() {
     };
   }, []);
 
-  const isMyTurn = game && player && game.currentPlayer === player && !game.winner;
+  const isMyTurn =
+    game && player && game.currentPlayer === player && !game.winner;
   const isMatchLive = gameStatus === "playing";
   const isMatchScreen =
     (gameStatus === "playing" ||
       gameStatus === "finished" ||
-      gameStatus === "opponent-left") &&
+      gameStatus === "opponent-left" ||
+      gameStatus === "opponent-disconnected") &&
     Boolean(game) &&
     Boolean(player);
 
@@ -336,7 +352,7 @@ function Game() {
           }
         `}</style>
 
-        {/* Top Navbar: only shown after match concludes (finished or opponent-left) */}
+        {/* Top Navbar: only shown after the match concludes. */}
         {!isMatchLive && (
           <div className="shrink-0">
             <Navbar variant="authenticated" />
@@ -397,7 +413,9 @@ function Game() {
                 <div className="min-w-0 flex-1 text-left">
                   <div className="flex items-center gap-1">
                     <p className="truncate text-xs font-bold text-[#fafafa]">
-                      {player === "circle" ? user?.name || "Player" : "Opponent"}
+                      {player === "circle"
+                        ? user?.name || "Player"
+                        : "Opponent"}
                     </p>
                     {player === "circle" && (
                       <span className="shrink-0 rounded bg-[#5ab0e6]/20 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#5ab0e6]">
@@ -467,8 +485,16 @@ function Game() {
                 <span className="shrink-0">🚪</span>
                 <span className="font-bold">Opponent Disconnected</span>
                 <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
-                  — Your opponent has left the match. You have been awarded the victory!
+                  — Your opponent has left the match. You have been awarded the
+                  victory!
                 </span>
+              </div>
+            )}
+
+            {gameStatus === "opponent-disconnected" && (
+              <div className="rounded-lg border border-[#27272a] bg-[#18181b] px-3 py-2 text-center text-xs text-[#a1a1aa]">
+                Your opponent left the finished match. Return to the dashboard
+                to start a new game.
               </div>
             )}
 
@@ -483,7 +509,11 @@ function Game() {
                 }`}
               >
                 <span className="shrink-0">
-                  {game.winner === "draw" ? "🤝" : game.winner === player ? "🏆" : "💔"}
+                  {game.winner === "draw"
+                    ? "🤝"
+                    : game.winner === player
+                      ? "🏆"
+                      : "💔"}
                 </span>
                 <span className="font-bold">
                   {game.winner === "draw"
@@ -513,7 +543,7 @@ function Game() {
 
           {/* 5. Bottom Actions Row */}
           <div className="shrink-0 w-full py-1">
-            {game.winner && gameStatus !== "opponent-left" ? (
+            {game.winner && gameStatus === "finished" ? (
               <div className="space-y-1.5">
                 {rematchError && (
                   <ErrorMessage
@@ -535,7 +565,9 @@ function Game() {
                       disabled={waitingForOpponent}
                       className="btn-primary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      {waitingForOpponent ? "Waiting for opponent..." : "🔄 Request Rematch"}
+                      {waitingForOpponent
+                        ? "Waiting for opponent..."
+                        : "🔄 Request Rematch"}
                     </button>
                   )}
 
@@ -595,15 +627,17 @@ function Game() {
                 <span>Back to Dashboard</span>
               </button>
 
-              {gameStatus === "idle" && !roomId && selectedGame === "tic-tac-toe" && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedGame(null)}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
-                >
-                  <span>All games</span>
-                </button>
-              )}
+              {gameStatus === "idle" &&
+                !roomId &&
+                selectedGame === "tic-tac-toe" && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGame(null)}
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                  >
+                    <span>All games</span>
+                  </button>
+                )}
             </div>
           ) : (
             <div />
@@ -634,13 +668,18 @@ function Game() {
           </div>
 
           {/* 1. LOBBY STATE (No Room Selected) */}
-          {gameStatus === "idle" && !roomId && (
-            selectedGame === null ? (
+          {gameStatus === "idle" &&
+            !roomId &&
+            (selectedGame === null ? (
               <GameList onSelect={setSelectedGame} />
             ) : (
               <div className="space-y-6">
                 {status === "connecting" && (
-                  <LoadingSpinner center size="sm" label="Connecting to game server..." />
+                  <LoadingSpinner
+                    center
+                    size="sm"
+                    label="Connecting to game server..."
+                  />
                 )}
                 {status === "error" && (
                   <ErrorMessage
@@ -663,9 +702,12 @@ function Game() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
                         👑
                       </div>
-                      <h3 className="text-base font-bold text-[#fafafa]">Host Match</h3>
+                      <h3 className="text-base font-bold text-[#fafafa]">
+                        Host Match
+                      </h3>
                       <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                        Generate a private room code and invite a friend to play.
+                        Generate a private room code and invite a friend to
+                        play.
                       </p>
                     </div>
                     <button
@@ -676,7 +718,11 @@ function Game() {
                       {isCreatingRoom && (
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#052e16] border-t-transparent" />
                       )}
-                      <span>{isCreatingRoom ? "Creating Room..." : "Create Private Room"}</span>
+                      <span>
+                        {isCreatingRoom
+                          ? "Creating Room..."
+                          : "Create Private Room"}
+                      </span>
                     </button>
                   </div>
 
@@ -686,7 +732,9 @@ function Game() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
                         ⚔️
                       </div>
-                      <h3 className="text-base font-bold text-[#fafafa]">Join Match</h3>
+                      <h3 className="text-base font-bold text-[#fafafa]">
+                        Join Match
+                      </h3>
                       <p className="text-xs text-[#a1a1aa] leading-relaxed">
                         Enter an invite code provided by another player.
                       </p>
@@ -709,7 +757,9 @@ function Game() {
                           }
                         }}
                         aria-invalid={!!roomError}
-                        aria-describedby={roomError ? "join-room-error" : undefined}
+                        aria-describedby={
+                          roomError ? "join-room-error" : undefined
+                        }
                         placeholder="Enter 6-character code"
                         maxLength={6}
                         inputMode="text"
@@ -723,19 +773,30 @@ function Game() {
                         }`}
                       />
                       {roomError && (
-                        <p id="join-room-error" role="alert" className="text-xs text-rose-400 mt-1">
+                        <p
+                          id="join-room-error"
+                          role="alert"
+                          className="text-xs text-rose-400 mt-1"
+                        >
                           {roomError}
                         </p>
                       )}
                       <button
                         onClick={joinRoom}
-                        disabled={!isConnected || isCreatingRoom || isJoiningRoom || !roomInput.trim()}
+                        disabled={
+                          !isConnected ||
+                          isCreatingRoom ||
+                          isJoiningRoom ||
+                          !roomInput.trim()
+                        }
                         className="btn-secondary flex min-h-[44px] items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
                         {isJoiningRoom && (
                           <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
                         )}
-                        <span>{isJoiningRoom ? "Joining Room..." : "Join Room"}</span>
+                        <span>
+                          {isJoiningRoom ? "Joining Room..." : "Join Room"}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -743,11 +804,13 @@ function Game() {
 
                 {/* Game Info Pill */}
                 <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-3 text-center text-xs text-[#a1a1aa]">
-                  <span>💡 Circle (⭕) always makes the opening move. 3 in a row to win!</span>
+                  <span>
+                    💡 Circle (⭕) always makes the opening move. 3 in a row to
+                    win!
+                  </span>
                 </div>
               </div>
-            )
-          )}
+            ))}
 
           {/* 2. WAITING ROOM STATE */}
           {gameStatus === "waiting" && roomId && (
@@ -761,7 +824,8 @@ function Game() {
                   Waiting for Challenger
                 </h3>
                 <p className="text-xs text-[#a1a1aa] max-w-sm mx-auto">
-                  Share this room code with your opponent. The match starts as soon as they join.
+                  Share this room code with your opponent. The match starts as
+                  soon as they join.
                 </p>
               </div>
 

@@ -77,7 +77,27 @@ export class GameManager {
 
   handleDisconnect(socketId: string): DisconnectResult | undefined {
     for (const [roomId, game] of this.games) {
-      if (game.players.cross === socketId) {
+      const isCirclePlayer = game.players.circle === socketId;
+      const isCrossPlayer = game.players.cross === socketId;
+
+      // Ignore games this socket does not belong to.
+      if (!isCirclePlayer && !isCrossPlayer) {
+        continue;
+      }
+
+      // Never overwrite a result when the game has already ended.
+      if (game.winner !== null) {
+        this.games.delete(roomId);
+        this.rematchRequests.delete(roomId);
+
+        return {
+          type: "finished-game",
+          roomId,
+          game,
+        };
+      }
+
+      if (isCrossPlayer) {
         game.winner = "circle";
 
         return {
@@ -87,7 +107,8 @@ export class GameManager {
         };
       }
 
-      if (game.players.circle === socketId) {
+      if (isCirclePlayer) {
+        // The room creator left before the opponent joined.
         if (!game.players.cross) {
           this.games.delete(roomId);
 
@@ -109,6 +130,7 @@ export class GameManager {
 
     return undefined;
   }
+
   leaveGame(
     roomId: string,
     socketId: string,

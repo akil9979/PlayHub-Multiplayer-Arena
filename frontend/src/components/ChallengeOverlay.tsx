@@ -18,8 +18,7 @@ export default function ChallengeOverlay() {
     useState<ChallengeReceivedPayload | null>(null);
 
   // Outgoing challenge sent by the current player
-  const [outgoingChallenge, setOutgoingChallenge] =
-    useState<ChallengeSentPayload | null>(null);
+  const [outgoingChallenge, setOutgoingChallenge] =  useState<ChallengeSentPayload | null>(null);
 
   // Informational toast / notification banner
   const [toastMessage, setToastMessage] = useState<{

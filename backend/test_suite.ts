@@ -715,8 +715,87 @@ async function runTests(): Promise<void> {
     console.log("PASS: Manual room was created.");
     console.log("PASS: Second player joined the room.");
 
-    // Persisted rows and any remaining in-memory room state are handled
-    // by the final cleanup below.
+    // ----------------------------------------------------
+    // TEST 10: Preserve the final game result on disconnect.
+    // ----------------------------------------------------
+
+    console.log("\n[TEST 10] Finished-game disconnect notification...");
+
+    const playAndWait = async (
+      mover: TestSocket,
+      index: number,
+      expectedPlayer: "circle" | "cross",
+    ): Promise<GameUpdatedPayload> => {
+      const updatePromise = waitForEvent<GameUpdatedPayload>(
+        clientB2,
+        "game-updated",
+        {
+          predicate: (payload) =>
+            Array.isArray(payload.board) &&
+            payload.board[index] === expectedPlayer,
+        },
+      );
+
+      mover.emit("make-move", {
+        roomId: manualRoomId,
+        index,
+      });
+
+      const game = await updatePromise;
+
+      assert.equal(
+        game.board[index],
+        expectedPlayer,
+        `Move at index ${index} should place ${expectedPlayer}.`,
+      );
+
+      console.log(`PASS: Move at index ${index} was broadcast and applied.`);
+      return game;
+    };
+
+    await playAndWait(clientA, 0, "circle");
+    await playAndWait(clientB2, 3, "cross");
+    await playAndWait(clientA, 1, "circle");
+    await playAndWait(clientB2, 4, "cross");
+    const finalGame = await playAndWait(clientA, 2, "circle");
+
+    assert.equal(
+      finalGame.winner,
+      "circle",
+      "Circle should win with the top-row combination.",
+    );
+
+    assert.deepEqual(
+      finalGame.board,
+      ["circle", "circle", "circle", "cross", "cross", null, null, null, null],
+      "The winning board should be correct.",
+    );
+
+    console.log("PASS: The game finished with circle as winner.");
+
+    const playerLeftPromise = waitForEvent<GameUpdatedPayload>(
+      clientB2,
+      "player-left-finished-game",
+    );
+
+    clientA.disconnect();
+
+    const gameAfterDisconnect = await playerLeftPromise;
+
+    assert.equal(
+      gameAfterDisconnect.winner,
+      "circle",
+      "Disconnect must not change the existing winner.",
+    );
+
+    assert.deepEqual(
+      gameAfterDisconnect.board,
+      ["circle", "circle", "circle", "cross", "cross", null, null, null, null],
+      "The final board must remain unchanged.",
+    );
+
+    console.log("PASS: Opponent received player-left-finished-game.");
+    console.log("PASS: Winner and final board remained unchanged.");
 
     testPassed = true;
   } catch (error) {
@@ -792,7 +871,7 @@ async function runTests(): Promise<void> {
 
   if (testPassed && cleanupSucceeded) {
     console.log("\n==========================================");
-    console.log("ALL 9 TEST SCENARIOS PASSED SUCCESSFULLY!");
+    console.log("ALL 10 TEST SCENARIOS PASSED SUCCESSFULLY!");
     console.log("Test server and database pool closed.");
     console.log("Test records cleaned up.");
     console.log("==========================================");
