@@ -1,17 +1,34 @@
+
 import type { Cell } from "../../types/game";
 
 interface SquareProps {
+  index: number;
   value: Cell;
   onClick: () => void;
   disabled?: boolean;
 }
 
-export default function Square({ value, onClick, disabled }: SquareProps) {
+export default function Square({
+  index,
+  value,
+  onClick,
+  disabled,
+}: SquareProps) {
   const isPlayable = !disabled && value === null;
+  const row = Math.floor(index / 3) + 1;
+  const column = (index % 3) + 1;
+  const stateLabel =
+    value === "circle"
+      ? "Circle"
+      : value === "cross"
+        ? "Cross"
+        : "Empty square";
+  const ariaLabel = `${stateLabel}, row ${row}, column ${column}`;
 
   return (
     <button
       type="button"
+      aria-label={ariaLabel}
       onClick={onClick}
       disabled={disabled || value !== null}
       className={`

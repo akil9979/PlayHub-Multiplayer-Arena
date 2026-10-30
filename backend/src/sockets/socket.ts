@@ -548,6 +548,9 @@ export function initializeSocket(httpServer: HttpServer) {
       const result = gameManager.requestRematch(roomId, socket.id);
 
       if (!result) {
+        socket.emit("game-error", {
+          message: "Unable to request a rematch for this room.",
+        });
         return;
       }
 

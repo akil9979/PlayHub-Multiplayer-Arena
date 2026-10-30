@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { socket } from "../Socket";
 import Board from "../components/Board";
@@ -19,6 +19,19 @@ type GameStatus =
   | "finished"
   | "opponent-left"
   | "opponent-disconnected";
+
+function extractErrorMessage(payload: unknown, fallback: string): string {
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "message" in payload &&
+    typeof (payload as { message: unknown }).message === "string" &&
+    (payload as { message: string }).message.trim() !== ""
+  ) {
+    return (payload as { message: string }).message.trim();
+  }
+  return fallback;
+}
 
 function Game() {
   const navigate = useNavigate();
@@ -46,6 +59,7 @@ function Game() {
   const [lobbyError, setLobbyError] = useState<string | null>(null);
   const [roomError, setRoomError] = useState<string | null>(null);
   const [rematchError, setRematchError] = useState<string | null>(null);
+  const [matchError, setMatchError] = useState<string | null>(null);
 
   const [gameStatus, setGameStatus] = useState<GameStatus>(
     challengeState?.roomId && challengeState?.game ? "playing" : "idle",
@@ -61,6 +75,11 @@ function Game() {
   const { status, isConnected } = useSocketStatus();
 
   const user = useAppSelector((state) => state.auth.user);
+
+  const gameStatusRef = useRef(gameStatus);
+  useEffect(() => {
+    gameStatusRef.current = gameStatus;
+  }, [gameStatus]);
 
   // Warn before closing or refreshing during an active live match
   useEffect(() => {
@@ -133,6 +152,7 @@ function Game() {
 
     socket.emit("request-rematch", roomId);
     setRematchError(null);
+    setMatchError(null);
     setWaitingForOpponent(true);
   };
 
@@ -152,6 +172,8 @@ function Game() {
     setIsCreatingRoom(false);
     setIsJoiningRoom(false);
     setLobbyError(null);
+    setMatchError(null);
+    setRematchError(null);
   };
 
   const handleBackToDashboard = () => {
@@ -185,13 +207,32 @@ function Game() {
       console.error("Socket connection failed:", error.message);
       setIsCreatingRoom(false);
       setIsJoiningRoom(false);
-      setLobbyError("Game server connection error. Retrying...");
+
+      if (gameStatusRef.current === "finished") {
+        setWaitingForOpponent(false);
+        setOpponentRequested(false);
+        setRematchError(
+          "Connection to the game server was lost. Please reconnect before requesting another rematch.",
+        );
+      } else if (gameStatusRef.current === "playing") {
+        setMatchError("Game server connection error. Retrying...");
+      } else {
+        setLobbyError("Game server connection error. Retrying...");
+      }
     };
 
     const handleDisconnect = (reason: string) => {
       console.log("Socket disconnected:", reason);
       setIsCreatingRoom(false);
       setIsJoiningRoom(false);
+      setWaitingForOpponent(false);
+      setOpponentRequested(false);
+
+      if (gameStatusRef.current === "finished") {
+        setRematchError(
+          "Connection to the game server was lost. Please reconnect before requesting another rematch.",
+        );
+      }
     };
 
     const handleRoomCreated = (createdRoomId: string) => {
@@ -214,6 +255,7 @@ function Game() {
     };
 
     const handlePlayerJoined = () => {
+      setMatchError(null);
       setGameStatus("playing");
     };
 
@@ -234,6 +276,7 @@ function Game() {
 
     const handleGameUpdated = (updatedGame: GameType) => {
       setGame(updatedGame);
+      setMatchError(null);
 
       if (updatedGame.winner !== null) {
         setGameStatus("finished");
@@ -252,6 +295,7 @@ function Game() {
       setOpponentRequested(false);
       setWaitingForOpponent(false);
       setRematchError(null);
+      setMatchError(null);
     };
 
     const handleRematchRequested = () => {
@@ -263,6 +307,8 @@ function Game() {
       setGameStatus("playing");
       setOpponentRequested(false);
       setWaitingForOpponent(false);
+      setRematchError(null);
+      setMatchError(null);
     };
 
     const handleChallengeAccepted = (payload: {
@@ -276,6 +322,36 @@ function Game() {
       setGameStatus("playing");
       setOpponentRequested(false);
       setWaitingForOpponent(false);
+      setMatchError(null);
+    };
+
+    const handleGameCreationFailed = () => {
+      setIsCreatingRoom(false);
+      setLobbyError("Failed to create room. Please try again.");
+    };
+
+    const handleJoinFailed = () => {
+      setIsJoiningRoom(false);
+      setLobbyError("Failed to join room. Please try again.");
+    };
+
+    const handleGameError = (payload: unknown) => {
+      const message = extractErrorMessage(
+        payload,
+        "An unexpected game error occurred.",
+      );
+
+      setIsCreatingRoom(false);
+      setIsJoiningRoom(false);
+      setWaitingForOpponent(false);
+
+      if (gameStatusRef.current === "playing") {
+        setMatchError(message);
+      } else if (gameStatusRef.current === "finished") {
+        setRematchError(message);
+      } else {
+        setLobbyError(message);
+      }
     };
 
     socket.on("connect", handleConnect);
@@ -299,6 +375,10 @@ function Game() {
     socket.on("rematch-accepted", handleRematchAccepted);
     socket.on("challenge-accepted", handleChallengeAccepted);
 
+    socket.on("game-creation-failed", handleGameCreationFailed);
+    socket.on("join-failed", handleJoinFailed);
+    socket.on("game-error", handleGameError);
+
     return () => {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectError);
@@ -320,6 +400,10 @@ function Game() {
       socket.off("rematch-requested", handleRematchRequested);
       socket.off("rematch-accepted", handleRematchAccepted);
       socket.off("challenge-accepted", handleChallengeAccepted);
+
+      socket.off("game-creation-failed", handleGameCreationFailed);
+      socket.off("join-failed", handleJoinFailed);
+      socket.off("game-error", handleGameError);
     };
   }, []);
 
@@ -360,7 +444,11 @@ function Game() {
         )}
 
         {/* Live Match Container: exactly fits the remaining viewport height */}
-        <div className="mx-auto flex w-full max-w-xl flex-1 min-h-0 flex-col justify-between overflow-hidden px-3 sm:px-4 py-2 sm:py-3 gap-1.5 sm:gap-2">
+        <div
+          className={`mx-auto flex w-full max-w-xl flex-1 min-h-0 flex-col justify-between px-3 sm:px-4 py-2 sm:py-3 gap-1.5 sm:gap-2 ${
+            isMatchLive ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"
+          }`}
+        >
           {/* 1. Compact Header */}
           <div className="shrink-0 text-center space-y-1 w-full">
             <div className="flex items-center justify-between gap-2 w-full">
@@ -462,7 +550,14 @@ function Game() {
           </div>
 
           {/* 3. Compact Turn / Status Banner */}
-          <div className="shrink-0 w-full">
+          <div className="shrink-0 w-full space-y-1.5">
+            {matchError && (
+              <ErrorMessage
+                compact
+                message={matchError}
+                onDismiss={() => setMatchError(null)}
+              />
+            )}
             {!game.winner && gameStatus === "playing" && (
               <div
                 className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-center text-xs font-bold leading-tight truncate ${
@@ -472,10 +567,13 @@ function Game() {
                 }`}
               >
                 <span className="shrink-0">{isMyTurn ? "🎯" : "⏳"}</span>
-                <span className="truncate">
+                <span className="font-bold">
+                  {isMyTurn ? "Your Turn" : "Opponent's Turn"}
+                </span>
+                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
                   {isMyTurn
-                    ? "Your Turn — Choose a square to place your symbol"
-                    : "Opponent's Turn — Waiting for rival move..."}
+                    ? "— Choose a square to place your symbol"
+                    : "— Waiting for rival move..."}
                 </span>
               </div>
             )}
@@ -538,7 +636,12 @@ function Game() {
             className="flex-1 min-h-0 w-full flex items-center justify-center p-1 sm:p-2"
             style={{ containerType: "size" }}
           >
-            <Board game={game} roomId={roomId} player={player} />
+            <Board
+              game={game}
+              roomId={roomId}
+              player={player}
+              onError={setMatchError}
+            />
           </div>
 
           {/* 5. Bottom Actions Row */}
@@ -557,13 +660,13 @@ function Game() {
                     ⚔️ Your opponent has requested a rematch!
                   </p>
                 )}
-                <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 w-full">
                   {!opponentRequested && (
                     <button
                       type="button"
                       onClick={handleRematchRequest}
                       disabled={waitingForOpponent}
-                      className="btn-primary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {waitingForOpponent
                         ? "Waiting for opponent..."
@@ -575,16 +678,19 @@ function Game() {
                     <button
                       type="button"
                       onClick={handleRematchRequest}
-                      className="btn-primary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold cursor-pointer"
+                      disabled={waitingForOpponent}
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
-                      ✓ Accept Rematch
+                      {waitingForOpponent
+                        ? "Starting Rematch..."
+                        : "✓ Accept Rematch"}
                     </button>
                   )}
 
                   <button
                     type="button"
                     onClick={handleLeaveGame}
-                    className="btn-secondary min-h-[40px] sm:min-h-[44px] flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold cursor-pointer"
+                    className="btn-secondary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold cursor-pointer"
                   >
                     Leave Match
                   </button>
@@ -815,6 +921,15 @@ function Game() {
           {/* 2. WAITING ROOM STATE */}
           {gameStatus === "waiting" && roomId && (
             <div className="space-y-6 py-4 text-center">
+              {lobbyError && (
+                <div className="max-w-sm mx-auto text-left">
+                  <ErrorMessage
+                    compact
+                    message={lobbyError}
+                    onDismiss={() => setLobbyError(null)}
+                  />
+                </div>
+              )}
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#27272a] bg-[#18181b] text-2xl">
                 📡
               </div>

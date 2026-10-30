@@ -6,14 +6,15 @@ type BoardProps = {
   game: Game | null;
   roomId: string;
   player: Player | null;
+  onError?: (message: string) => void;
 };
 
-function Board({ game, roomId, player }: BoardProps) {
+function Board({ game, roomId, player, onError }: BoardProps) {
   const isMyTurn = game?.currentPlayer === player && game?.winner === null;
 
   const handleMakeMove = (index: number) => {
     if (!socket.connected) {
-      alert("Not connected to game server.");
+      onError?.("Cannot make move: not connected to game server.");
       return;
     }
 
@@ -52,6 +53,7 @@ function Board({ game, roomId, player }: BoardProps) {
       <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full h-full">
         {game.board.map((cell, index) => (
           <Square
+            index={index}
             value={cell}
             key={index}
             disabled={!isMyTurn || cell !== null}

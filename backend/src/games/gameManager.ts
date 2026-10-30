@@ -156,6 +156,14 @@ export class GameManager {
       return;
     }
 
+    const isCirclePlayer = game.players.circle === socketId;
+    const isCrossPlayer = game.players.cross === socketId;
+
+    // Ignore games this socket does not belong to.
+    if (!isCirclePlayer && !isCrossPlayer) {
+      return;
+    }
+
     // Game is already finished.
     // Do NOT change the winner.
     if (game.winner !== null) {
@@ -210,6 +218,11 @@ export class GameManager {
     const game = this.games.get(roomId);
 
     if (!game) {
+      return;
+    }
+
+    // Rematches can only be requested after the game has finished.
+    if (game.winner === null) {
       return;
     }
 
