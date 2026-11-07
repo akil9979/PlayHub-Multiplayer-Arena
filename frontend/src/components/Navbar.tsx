@@ -1,5 +1,7 @@
+import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LogOut, Menu, X, Gamepad2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../redux/hook";
 import { logout } from "../redux/slices/authSlice";
 import api from "../api/axios";
@@ -180,7 +182,7 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
   };
 
   const handleNavLinkClick = (
-    event: React.MouseEvent<HTMLAnchorElement>,
+    event: MouseEvent<HTMLAnchorElement>,
     path: string
   ) => {
     const hash = getHashFromPath(path);
@@ -214,18 +216,18 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
   }[socketStatus];
 
   const socketDotClass = {
-    connected: "bg-emerald-500",
-    connecting: "bg-amber-400 animate-pulse",
+    connected: "bg-emerald-400 ring-2 ring-emerald-500/30",
+    connecting: "bg-amber-400 animate-pulse ring-2 ring-amber-500/30",
     disconnected: "bg-zinc-500",
-    error: "bg-red-500",
+    error: "bg-rose-500",
   }[socketStatus];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#27272a] bg-[#0a0a0b]">
+    <header className="sticky top-0 z-50 border-b border-zinc-800/80 bg-[#0a0a0b]/85 backdrop-blur-md transition-colors">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to={brandPath}
-          className="flex items-center gap-2"
+          className="group flex items-center gap-2.5 transition-transform duration-150 active:scale-95"
           onClick={(event) => {
             if (mode === "public") {
               handleNavLinkClick(event, "/#home");
@@ -234,8 +236,11 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
             }
           }}
         >
-          <span className="font-display text-lg font-bold tracking-wider text-[#fafafa]">
-            PLAYHUB
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-accent transition-colors group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50 shadow-[0_0_12px_-2px_rgba(34,197,94,0.3)]">
+            <Gamepad2 className="w-4 h-4" />
+          </div>
+          <span className="font-display text-lg font-bold tracking-wider text-white">
+            PLAY<span className="text-accent">HUB</span>
           </span>
         </Link>
 
@@ -250,13 +255,16 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 key={link.path}
                 to={link.path}
                 onClick={(event) => handleNavLinkClick(event, link.path)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`relative px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all duration-150 ${
                   isActive
-                    ? "text-[#fafafa] font-semibold"
-                    : "text-zinc-400 hover:text-[#fafafa]"
+                    ? "text-white bg-zinc-800/80 shadow-sm"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
                 }`}
               >
                 {link.name}
+                {isActive && (
+                  <span className="absolute bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-accent" />
+                )}
               </Link>
             );
           })}
@@ -267,21 +275,23 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-2.5 rounded-lg border border-[#27272a] bg-[#111113] py-1.5 pl-2 pr-3.5 transition-colors hover:border-[#3f3f46] hover:bg-[#18181b]"
+                className="group flex items-center gap-2.5 rounded-xl border border-zinc-800 bg-[#121216] py-1.5 pl-2 pr-3.5 transition-all duration-150 hover:border-zinc-700 hover:bg-[#16161c] shadow-sm"
                 title="View Profile"
               >
-                <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-[#27272a] text-xs font-bold text-[#fafafa]">
+                <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-xs font-bold text-white border border-zinc-700/60">
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   <span
-                    className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-[#111113] ${socketDotClass}`}
+                    className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#121216] ${socketDotClass}`}
                     aria-label={socketLabel}
                   />
                 </div>
                 <div className="text-left">
-                  <p className="text-xs font-semibold leading-tight text-[#fafafa]">
+                  <p className="text-xs font-semibold leading-tight text-zinc-100 group-hover:text-white">
                     {user.name}
                   </p>
-                  <p className="text-[10px] leading-tight text-zinc-400">{socketLabel}</p>
+                  <p className="text-[10px] leading-tight text-zinc-400 font-medium">
+                    {socketLabel}
+                  </p>
                 </div>
               </Link>
 
@@ -289,36 +299,23 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-950/30 px-3 py-1.5 text-xs font-semibold text-rose-300 transition-all duration-150 hover:bg-rose-900/40 hover:text-rose-200 disabled:opacity-50 cursor-pointer shadow-sm"
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
+                <LogOut className="h-3.5 w-3.5" aria-hidden />
                 <span>{isLoggingOut ? "Leaving..." : "Logout"}</span>
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-medium text-zinc-400 hover:text-[#fafafa] transition-colors"
+                className="text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors px-3 py-1.5"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-[#fafafa] px-3.5 py-1.5 text-xs font-semibold text-[#0a0a0b] transition-colors hover:bg-zinc-200"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-zinc-950 transition-all duration-150 hover:bg-accent-hover shadow-[0_0_16px_-2px_rgba(34,197,94,0.3)] hover:shadow-[0_0_20px_-2px_rgba(34,197,94,0.45)] active:scale-95"
               >
                 Get Started
               </Link>
@@ -330,12 +327,12 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           {mode === "authenticated" && user && (
             <Link
               to="/profile"
-              className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#27272a] text-xs font-bold text-[#fafafa] border border-[#27272a]"
+              className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-800 text-xs font-bold text-white border border-zinc-700"
               aria-label="Open profile"
             >
               {user.name ? user.name.charAt(0).toUpperCase() : "U"}
               <span
-                className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-[#0a0a0b] ${socketDotClass}`}
+                className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#0a0a0b] ${socketDotClass}`}
                 aria-label={socketLabel}
               />
             </Link>
@@ -343,28 +340,16 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg border border-[#27272a] bg-[#111113] p-2 text-zinc-400 hover:text-white hover:bg-[#18181b]"
+            className="rounded-lg border border-zinc-800 bg-[#121216] p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
             aria-label="Toggle menu"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>
@@ -372,7 +357,7 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
       {mobileMenuOpen && (
         <div
           id="mobile-nav"
-          className="space-y-2 border-b border-[#27272a] bg-[#0a0a0b] px-4 pb-4 pt-2 md:hidden"
+          className="space-y-1.5 border-b border-zinc-800 bg-[#0a0a0b]/95 backdrop-blur-md px-4 pb-4 pt-2 md:hidden animate-fade-in"
         >
           {navLinks.map((link) => {
             const isActive = isActivePath(link.path);
@@ -383,8 +368,8 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
                 onClick={(event) => handleNavLinkClick(event, link.path)}
                 className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? "text-[#fafafa] bg-[#18181b] font-semibold"
-                    : "text-zinc-400 hover:bg-[#18181b] hover:text-[#fafafa]"
+                    ? "text-white bg-zinc-800/80 font-semibold"
+                    : "text-zinc-400 hover:bg-zinc-900/60 hover:text-white"
                 }`}
               >
                 {link.name}
@@ -393,33 +378,34 @@ export default function Navbar({ variant = "auto" }: NavbarProps) {
           })}
 
           {mode === "authenticated" && user ? (
-            <div className="flex items-center justify-between border-t border-[#27272a] pt-3">
+            <div className="flex items-center justify-between border-t border-zinc-800 pt-3 mt-2">
               <div className="text-xs text-zinc-400">
                 Logged in as{" "}
-                <span className="font-semibold text-[#fafafa]">{user.name}</span>
+                <span className="font-semibold text-white">{user.name}</span>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-950/30 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-900/40 disabled:opacity-50 cursor-pointer"
               >
-                Logout
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Logout</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3 border-t border-[#27272a] pt-3">
+            <div className="flex items-center gap-3 border-t border-zinc-800 pt-3 mt-2">
               <Link
                 to="/login"
                 onClick={closeMobile}
-                className="flex-1 text-center text-xs font-medium text-zinc-400 hover:text-white py-2"
+                className="flex-1 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white py-2"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
                 onClick={closeMobile}
-                className="flex-1 rounded-lg bg-[#fafafa] px-3 py-2 text-center text-xs font-semibold text-[#0a0a0b] hover:bg-zinc-200 transition-colors"
+                className="flex-1 rounded-lg bg-accent px-3 py-2 text-center text-xs font-semibold text-zinc-950 hover:bg-accent-hover transition-colors shadow-sm"
               >
                 Get Started
               </Link>

@@ -1,4 +1,5 @@
-import React from "react";
+import type { ReactNode } from "react";
+import { ArrowRight, Crown, Grid3X3, Layers, Ship } from "lucide-react";
 
 interface GameListProps {
   onSelect: (gameId: string) => void;
@@ -10,7 +11,7 @@ interface GameItem {
   description: string;
   available: boolean;
   players: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 const GAMES: GameItem[] = [
@@ -20,25 +21,7 @@ const GAMES: GameItem[] = [
     description: "Live 1v1 turn-based battle",
     available: true,
     players: "1v1 Online",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <line x1="9" y1="3" x2="9" y2="21" />
-        <line x1="15" y1="3" x2="15" y2="21" />
-        <line x1="3" y1="9" x2="21" y2="9" />
-        <line x1="3" y1="15" x2="21" y2="15" />
-        <path d="M4.5 4.5l3 3M7.5 4.5l-3 3" />
-        <circle cx="18" cy="6" r="1.5" />
-      </svg>
-    ),
+    icon: <Grid3X3 className="w-5 h-5 text-accent" />,
   },
   {
     id: "connect-four",
@@ -46,29 +29,7 @@ const GAMES: GameItem[] = [
     description: "Drop tokens & align 4 in a row",
     available: false,
     players: "1v1 Online",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="7.5" r="1.5" fill="currentColor" />
-        <circle cx="16.5" cy="7.5" r="1.5" fill="currentColor" />
-        <circle cx="7.5" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="16.5" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="16.5" r="1.5" fill="currentColor" />
-        <circle cx="16.5" cy="16.5" r="1.5" fill="currentColor" />
-      </svg>
-    ),
+    icon: <Layers className="w-5 h-5 text-zinc-400" />,
   },
   {
     id: "chess",
@@ -76,22 +37,7 @@ const GAMES: GameItem[] = [
     description: "Timed multiplayer chess matches",
     available: false,
     players: "1v1 Online",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M19 21H5v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2z" />
-        <path d="M17 18H7a3 3 0 0 1-3-3v-2c0-1.5 1-3 2.5-3.5L8 9V6a3 3 0 0 1 3-3h1a4 4 0 0 1 4 4v2l1.5 2c1.5.5 2.5 2 2.5 3.5v2a3 3 0 0 1-3 3z" />
-        <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
-      </svg>
-    ),
+    icon: <Crown className="w-5 h-5 text-zinc-400" />,
   },
   {
     id: "battleship",
@@ -99,23 +45,7 @@ const GAMES: GameItem[] = [
     description: "Tactical naval fleet coordinates",
     available: false,
     players: "1v1 Online",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M2 18l2 3h16l2-3-4-4H6l-4 4z" />
-        <path d="M6 14l2-6h8l2 6" />
-        <line x1="12" y1="4" x2="12" y2="8" />
-        <line x1="10" y1="5" x2="14" y2="5" />
-      </svg>
-    ),
+    icon: <Ship className="w-5 h-5 text-zinc-400" />,
   },
 ];
 
@@ -130,33 +60,34 @@ export default function GameList({ onSelect }: GameListProps) {
                 key={game.id}
                 type="button"
                 onClick={() => onSelect(game.id)}
-                className="group flex flex-col justify-between text-left rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 transition-colors hover:border-[#3f3f46] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22c55e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0b] min-h-[44px] cursor-pointer"
+                className="group flex flex-col justify-between text-left rounded-2xl border border-emerald-500/30 bg-[#121217] p-5 transition-all duration-150 hover:border-emerald-500/50 hover:bg-[#14141a] hover:shadow-[0_8px_30px_-6px_rgba(34,197,94,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent min-h-[44px] cursor-pointer"
               >
-                <div className="space-y-3 w-full">
+                <div className="space-y-3.5 w-full">
                   <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-[#22c55e]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-950/30">
                       {game.icon}
                     </div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-2.5 py-0.5 text-[10px] font-semibold text-[#22c55e]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                       Playable
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-[#fafafa]">
+                    <h3 className="text-base font-bold text-white font-display">
                       {game.title}
                     </h3>
-                    <p className="mt-1 text-xs text-[#a1a1aa] leading-relaxed">
+                    <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
                       {game.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 flex w-full items-center justify-between border-t border-[#27272a] pt-3 text-xs text-[#71717a]">
+                <div className="mt-4 flex w-full items-center justify-between border-t border-zinc-800/80 pt-3 text-xs text-zinc-500">
                   <span>{game.players}</span>
-                  <span className="font-semibold text-[#22c55e] group-hover:translate-x-0.5 transition-transform motion-reduce:transform-none">
-                    Play Now →
+                  <span className="inline-flex items-center gap-1 font-semibold text-accent group-hover:translate-x-0.5 transition-transform motion-reduce:transform-none">
+                    <span>Play Now</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </button>
@@ -169,31 +100,31 @@ export default function GameList({ onSelect }: GameListProps) {
               type="button"
               disabled
               aria-disabled="true"
-              className="flex flex-col justify-between text-left rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 opacity-60 cursor-not-allowed select-none min-h-[44px]"
+              className="flex flex-col justify-between text-left rounded-2xl border border-zinc-800/80 bg-[#101014] p-5 opacity-60 cursor-not-allowed select-none min-h-[44px]"
             >
-              <div className="space-y-3 w-full">
+              <div className="space-y-3.5 w-full">
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-[#71717a]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-800 bg-[#16161c]">
                     {game.icon}
                   </div>
-                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400">
+                  <span className="rounded-full border border-amber-500/30 bg-amber-950/30 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400">
                     Coming soon
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-[#a1a1aa]">
+                  <h3 className="text-base font-bold text-zinc-300 font-display">
                     {game.title}
                   </h3>
-                  <p className="mt-1 text-xs text-[#71717a] leading-relaxed">
+                  <p className="mt-1 text-xs text-zinc-500 leading-relaxed">
                     {game.description}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex w-full items-center justify-between border-t border-[#27272a] pt-3 text-xs text-[#71717a]">
+              <div className="mt-4 flex w-full items-center justify-between border-t border-zinc-800/80 pt-3 text-xs text-zinc-600">
                 <span>{game.players}</span>
-                <span className="text-[11px] text-[#71717a]">In development</span>
+                <span className="text-[11px] text-zinc-500">In development</span>
               </div>
             </button>
           );

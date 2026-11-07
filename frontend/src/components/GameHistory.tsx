@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check, Copy, Gamepad2 } from "lucide-react";
 import type { GameHistory } from "../types/game";
 import EmptyState from "./common/EmptyState";
 
@@ -40,7 +41,7 @@ export default function GameHistoryComponent({
   if (!games || games.length === 0) {
     return (
       <EmptyState
-        icon="🎮"
+        icon={<Gamepad2 className="w-6 h-6 text-zinc-500" />}
         title="No matches played yet"
         description="Your match history will appear here after your first battle in the arena."
         action={{
@@ -53,11 +54,11 @@ export default function GameHistoryComponent({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#27272a] bg-[#111113]">
+    <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#121217] shadow-sm">
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left text-sm text-zinc-300">
-          <thead className="border-b border-[#27272a] bg-[#0a0a0b] text-xs uppercase tracking-wider text-zinc-400">
+          <thead className="border-b border-zinc-800/80 bg-[#0d0d10] text-[11px] font-semibold uppercase tracking-wider text-zinc-400 select-none">
             <tr>
               <th scope="col" className="px-5 py-3.5">
                 Result
@@ -76,7 +77,7 @@ export default function GameHistoryComponent({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#27272a]">
+          <tbody className="divide-y divide-zinc-800/60 font-mono text-xs">
             {displayedGames.map((game) => {
               const isCircle = game.circle_user_id === userId;
               const isCross = game.cross_user_id === userId;
@@ -90,32 +91,32 @@ export default function GameHistoryComponent({
               return (
                 <tr
                   key={game.id}
-                  className="transition-colors hover:bg-[#18181b]"
+                  className="transition-colors hover:bg-zinc-850/40"
                 >
                   {/* Result Badge */}
                   <td className="px-5 py-4 whitespace-nowrap">
                     {isDraw ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3f3f46] bg-[#27272a] px-3 py-1 text-xs font-semibold text-zinc-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-0.5 text-xs font-semibold text-zinc-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
                         Draw
                       </span>
                     ) : isWon ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/40 px-2.5 py-0.5 text-xs font-semibold text-accent shadow-sm">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                         Victory
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-950/40 px-2.5 py-0.5 text-xs font-semibold text-rose-300 shadow-sm">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
                         Defeat
                       </span>
                     )}
                   </td>
 
                   {/* Circle User */}
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5ab0e6]/20 text-xs font-bold text-[#5ab0e6]">
+                  <td className="px-5 py-4 whitespace-nowrap font-sans">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/30 text-xs font-black text-cyan-400">
                         O
                       </span>
                       <span
@@ -127,8 +128,8 @@ export default function GameHistoryComponent({
                       >
                         {game.circle_user_name}
                         {isCircle && (
-                          <span className="rounded bg-[#5ab0e6]/20 px-1.5 py-0.5 text-[10px] font-medium text-[#5ab0e6]">
-                            You
+                          <span className="rounded-full bg-cyan-500/20 border border-cyan-500/30 px-1.5 py-0.2 text-[9px] font-bold text-cyan-300">
+                            YOU
                           </span>
                         )}
                       </span>
@@ -136,9 +137,9 @@ export default function GameHistoryComponent({
                   </td>
 
                   {/* Cross User */}
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#7c6ee6]/20 text-xs font-bold text-[#7c6ee6]">
+                  <td className="px-5 py-4 whitespace-nowrap font-sans">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-950/30 text-xs font-black text-purple-400">
                         X
                       </span>
                       <span
@@ -150,8 +151,8 @@ export default function GameHistoryComponent({
                       >
                         {game.cross_user_name}
                         {isCross && (
-                          <span className="rounded bg-[#7c6ee6]/20 px-1.5 py-0.5 text-[10px] font-medium text-[#7c6ee6]">
-                            You
+                          <span className="rounded-full bg-purple-500/20 border border-purple-500/30 px-1.5 py-0.2 text-[9px] font-bold text-purple-300">
+                            YOU
                           </span>
                         )}
                       </span>
@@ -159,21 +160,24 @@ export default function GameHistoryComponent({
                   </td>
 
                   {/* Room ID */}
-                  <td className="px-5 py-4 whitespace-nowrap">
+                  <td className="px-5 py-4 whitespace-nowrap font-mono">
                     <button
+                      type="button"
                       onClick={() => handleCopyRoomId(game.room_id)}
-                      className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#0a0a0b] px-2.5 py-1 text-xs font-mono text-zinc-400 hover:border-[#3f3f46] hover:text-white"
-                      title="Click to copy room ID"
+                      className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-[#0d0d10] px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-700 hover:text-white transition-colors cursor-pointer"
+                      title="Click to copy room code"
                     >
-                      <span>{game.room_id}</span>
-                      <span className="text-[10px] text-zinc-500 group-hover/btn:text-emerald-400">
-                        {copiedId === game.room_id ? "✓ Copied" : "📋"}
-                      </span>
+                      <span className="tracking-wider">{game.room_id}</span>
+                      {copiedId === game.room_id ? (
+                        <Check className="w-3 h-3 text-accent" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-zinc-500 group-hover/btn:text-zinc-300 transition-colors" />
+                      )}
                     </button>
                   </td>
 
                   {/* Date */}
-                  <td className="px-5 py-4 whitespace-nowrap text-xs text-zinc-400">
+                  <td className="px-5 py-4 whitespace-nowrap text-xs text-zinc-400 font-sans">
                     {formatDate(game.created_at)}
                   </td>
                 </tr>
@@ -184,7 +188,7 @@ export default function GameHistoryComponent({
       </div>
 
       {/* Mobile Card List View */}
-      <div className="divide-y divide-[#27272a] md:hidden">
+      <div className="divide-y divide-zinc-800/70 md:hidden">
         {displayedGames.map((game) => {
           const isCircle = game.circle_user_id === userId;
           const isCross = game.cross_user_id === userId;
@@ -199,16 +203,19 @@ export default function GameHistoryComponent({
             <div key={game.id} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 {isDraw ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#3f3f46] bg-[#27272a] px-2.5 py-0.5 text-xs font-semibold text-zinc-300">
-                    ● Draw
+                  <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-0.5 text-xs font-semibold text-zinc-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
+                    Draw
                   </span>
                 ) : isWon ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
-                    ● Victory
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-950/40 px-2.5 py-0.5 text-xs font-semibold text-accent shadow-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                    Victory
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-400">
-                    ● Defeat
+                  <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-950/40 px-2.5 py-0.5 text-xs font-semibold text-rose-300 shadow-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                    Defeat
                   </span>
                 )}
                 <span className="text-[11px] text-zinc-400">
@@ -217,9 +224,9 @@ export default function GameHistoryComponent({
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-2.5">
-                  <div className="flex items-center gap-1.5 text-[#5ab0e6] font-semibold mb-1">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#5ab0e6]/20 text-[10px]">
+                <div className="rounded-xl border border-zinc-800 bg-[#0d0d10] p-2.5">
+                  <div className="flex items-center gap-1.5 text-cyan-400 font-semibold mb-1">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-md bg-cyan-950/40 text-[10px] font-bold">
                       O
                     </span>
                     <span>Circle</span>
@@ -227,16 +234,16 @@ export default function GameHistoryComponent({
                   <p className="truncate font-medium text-zinc-200">
                     {game.circle_user_name}
                     {isCircle && (
-                      <span className="ml-1 text-[10px] text-[#5ab0e6]">
+                      <span className="ml-1 text-[10px] text-cyan-400 font-bold">
                         (You)
                       </span>
                     )}
                   </p>
                 </div>
 
-                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-2.5">
-                  <div className="flex items-center gap-1.5 text-[#7c6ee6] font-semibold mb-1">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#7c6ee6]/20 text-[10px]">
+                <div className="rounded-xl border border-zinc-800 bg-[#0d0d10] p-2.5">
+                  <div className="flex items-center gap-1.5 text-purple-400 font-semibold mb-1">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-md bg-purple-950/40 text-[10px] font-bold">
                       X
                     </span>
                     <span>Cross</span>
@@ -244,7 +251,7 @@ export default function GameHistoryComponent({
                   <p className="truncate font-medium text-zinc-200">
                     {game.cross_user_name}
                     {isCross && (
-                      <span className="ml-1 text-[10px] text-[#7c6ee6]">
+                      <span className="ml-1 text-[10px] text-purple-400 font-bold">
                         (You)
                       </span>
                     )}
@@ -253,12 +260,23 @@ export default function GameHistoryComponent({
               </div>
 
               <div className="flex items-center justify-between pt-1 text-xs text-zinc-400">
-                <span>Room: <code className="font-mono text-zinc-300">{game.room_id}</code></span>
+                <span>Room: <code className="font-mono text-white">{game.room_id}</code></span>
                 <button
+                  type="button"
                   onClick={() => handleCopyRoomId(game.room_id)}
-                  className="text-xs text-zinc-400 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  {copiedId === game.room_id ? "Copied!" : "Copy Code"}
+                  {copiedId === game.room_id ? (
+                    <>
+                      <Check className="w-3 h-3 text-accent" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

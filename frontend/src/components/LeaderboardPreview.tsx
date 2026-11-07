@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight, Trophy } from "lucide-react";
 import api from "../api/axios";
 import { useAppSelector } from "../redux/hook";
 import ErrorMessage from "./common/ErrorMessage";
@@ -37,24 +38,24 @@ export default function LeaderboardPreview() {
     <div className="surface-card p-6 sm:p-7 flex flex-col justify-between">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#27272a] pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#27272a] border border-[#3f3f46] text-base">
-              🏆
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-sm">
+              <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white leading-tight flex items-center gap-1.5">
-                <span>Leaderboard Standings</span>
+              <h3 className="font-bold text-white leading-tight font-display">
+                Leaderboard Standings
               </h3>
               <p className="text-[11px] text-zinc-400">Top Arena Competitors</p>
             </div>
           </div>
           <Link
             to="/leaderboard"
-            className="text-xs text-zinc-400 hover:text-white font-medium transition-colors flex items-center gap-1"
+            className="group text-xs text-zinc-400 hover:text-white font-medium transition-colors flex items-center gap-1"
           >
             <span>Full Board</span>
-            <span>→</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
 
@@ -65,13 +66,13 @@ export default function LeaderboardPreview() {
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded-lg border border-[#27272a] bg-[#0a0a0b] p-2.5"
+                  className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-[#0d0d10] p-3"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-6 w-6 rounded-lg bg-[#27272a]" />
-                    <div className="h-3 w-20 rounded bg-[#27272a]" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-7 w-7 rounded-lg bg-zinc-800" />
+                    <div className="h-3.5 w-24 rounded bg-zinc-800" />
                   </div>
-                  <div className="h-3 w-16 rounded bg-[#27272a]" />
+                  <div className="h-3.5 w-16 rounded bg-zinc-800" />
                 </div>
               ))}
             </div>
@@ -84,7 +85,7 @@ export default function LeaderboardPreview() {
           ) : topPlayers.length === 0 ? (
             <EmptyState
               compact
-              icon="🏆"
+              icon={<Trophy className="w-6 h-6 text-zinc-500" />}
               title="No matches recorded yet"
               description="Play a match to claim the #1 spot on the arena leaderboard!"
               action={{
@@ -100,21 +101,21 @@ export default function LeaderboardPreview() {
               return (
                 <div
                   key={player.userId}
-                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs transition-colors ${
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150 ${
                     isCurrentUser
-                      ? "bg-[#18181b] border border-[#3f3f46]"
+                      ? "bg-zinc-850/80 border border-emerald-500/40 shadow-sm"
                       : rank === 1
-                      ? "bg-amber-500/10 border border-amber-500/30"
+                      ? "bg-amber-950/20 border border-amber-500/30"
                       : rank === 2
-                      ? "bg-zinc-800/40 border border-zinc-700/40"
+                      ? "bg-zinc-850/50 border border-zinc-700/50"
                       : rank === 3
-                      ? "bg-amber-900/20 border border-amber-800/30"
-                      : "bg-[#0a0a0b] border border-[#27272a] hover:bg-[#18181b]"
+                      ? "bg-amber-950/15 border border-amber-700/30"
+                      : "bg-[#0d0d10] border border-zinc-800/80 hover:bg-[#141419]"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     {/* Rank Indicator */}
-                    <div className="w-5 text-center font-bold">
+                    <div className="w-6 text-center font-bold font-mono">
                       {rank === 1 ? (
                         <span className="text-base" title="1st Place">🥇</span>
                       ) : rank === 2 ? (
@@ -122,29 +123,29 @@ export default function LeaderboardPreview() {
                       ) : rank === 3 ? (
                         <span className="text-base" title="3rd Place">🥉</span>
                       ) : (
-                        <span className="text-zinc-500 font-mono text-[11px]">#{rank}</span>
+                        <span className="text-zinc-500 text-xs">#{rank}</span>
                       )}
                     </div>
 
                     {/* Avatar Initial */}
                     <div
-                      className={`flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-bold ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
                         rank === 1
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
                           : rank === 2
                           ? "bg-zinc-700 text-zinc-200 border border-zinc-600"
                           : rank === 3
                           ? "bg-amber-900/40 text-amber-200 border border-amber-800/50"
                           : isCurrentUser
-                          ? "bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/40"
-                          : "bg-[#27272a] text-zinc-300"
+                          ? "bg-emerald-500/20 text-accent border border-emerald-500/40"
+                          : "bg-zinc-800 text-zinc-300 border border-zinc-700/60"
                       }`}
                     >
                       {player.name ? player.name.charAt(0).toUpperCase() : "U"}
                     </div>
 
                     {/* Name */}
-                    <div className="flex items-center gap-1.5 truncate max-w-[110px] sm:max-w-[130px]">
+                    <div className="flex items-center gap-1.5 truncate max-w-[120px] sm:max-w-[160px]">
                       <span
                         className={`truncate font-semibold ${
                           isCurrentUser
@@ -157,7 +158,7 @@ export default function LeaderboardPreview() {
                         {player.name}
                       </span>
                       {isCurrentUser && (
-                        <span className="rounded bg-[#22c55e]/20 text-[#22c55e] px-1 py-0.5 text-[8px] font-bold uppercase">
+                        <span className="rounded-full bg-emerald-500/20 text-accent border border-emerald-500/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
                           YOU
                         </span>
                       )}
@@ -165,13 +166,13 @@ export default function LeaderboardPreview() {
                   </div>
 
                   {/* Stats Column */}
-                  <div className="flex items-center gap-3 text-right">
+                  <div className="flex items-center gap-3 text-right font-mono tabular-nums">
                     <div>
-                      <span className="font-bold text-emerald-400">{player.wins}W</span>
+                      <span className="font-bold text-accent">{player.wins}W</span>
                       <span className="text-zinc-600 mx-1">•</span>
                       <span className="text-zinc-400">{player.gamesPlayed}M</span>
                     </div>
-                    <span className="font-mono text-[11px] font-semibold text-zinc-300">
+                    <span className="text-xs font-semibold text-zinc-200 bg-zinc-800/60 px-2 py-0.5 rounded-md border border-zinc-700/40">
                       {player.winRate}%
                     </span>
                   </div>
@@ -183,13 +184,13 @@ export default function LeaderboardPreview() {
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-5 pt-3 border-t border-[#27272a]">
+      <div className="mt-5 pt-3 border-t border-zinc-800/80">
         <Link
           to="/leaderboard"
-          className="flex items-center justify-center gap-2 rounded-lg border border-[#3f3f46] bg-[#27272a] py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#3f3f46]"
+          className="group flex items-center justify-center gap-2 rounded-xl border border-zinc-750 bg-zinc-850/80 py-2.5 text-xs font-semibold text-white transition-all hover:bg-zinc-800 hover:border-zinc-700 shadow-sm"
         >
           <span>View Full Leaderboard</span>
-          <span>➔</span>
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
     </div>

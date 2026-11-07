@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, CheckCircle2, Gamepad2, Lock, Mail, User } from "lucide-react";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import ErrorMessage from "../components/common/ErrorMessage";
@@ -52,7 +53,7 @@ function Signup() {
     return !nameErr && !emailErr && !passwordErr && !confirmErr;
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
@@ -96,47 +97,72 @@ function Signup() {
       <Navbar variant="public" />
 
       <main className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] lg:grid-cols-2">
-          <aside className="relative hidden overflow-hidden border-r border-[#27272a] bg-[#0a0a0b] p-10 lg:flex lg:flex-col lg:justify-between">
-            <div>
-              <p className="font-display text-sm font-bold tracking-[0.2em] text-[#fafafa]">
-                PLAYHUB
-              </p>
-              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#fafafa]">
+        <div className="relative grid w-full max-w-5xl overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#111115] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.7)] lg:grid-cols-2">
+          {/* Brand panel */}
+          <aside className="relative hidden overflow-hidden border-r border-zinc-800/80 bg-gradient-to-br from-[#0c0c0e] via-[#0f0f13] to-[#0a0a0c] p-10 lg:flex lg:flex-col lg:justify-between">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-accent">
+                  <Gamepad2 className="w-4 h-4" />
+                </div>
+                <p className="font-display text-xs font-bold tracking-[0.25em] text-accent uppercase">
+                  PLAYHUB ARENA
+                </p>
+              </div>
+              <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-white font-display">
                 Create your player profile
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-[#a1a1aa]">
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
                 Join the arena, challenge rivals in real time, and start building
-                your competitive record.
+                your competitive match record.
               </p>
             </div>
 
-            <ul className="mt-10 space-y-3 text-sm text-[#fafafa]">
-              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
-                Live Tic-Tac-Toe multiplayer
+            <ul className="relative z-10 mt-8 space-y-3 text-sm text-zinc-200">
+              <li className="flex items-center gap-3 rounded-xl border border-zinc-800/80 bg-[#141419]/90 px-4 py-3 shadow-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-accent border border-emerald-500/30">
+                  <Check className="w-3.5 h-3.5" />
+                </span>
+                <span>Live Tic-Tac-Toe multiplayer</span>
               </li>
-              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
-                Online challenges & private rooms
+              <li className="flex items-center gap-3 rounded-xl border border-zinc-800/80 bg-[#141419]/90 px-4 py-3 shadow-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-accent border border-emerald-500/30">
+                  <Check className="w-3.5 h-3.5" />
+                </span>
+                <span>Online challenges & private rooms</span>
               </li>
-              <li className="rounded-lg border border-[#27272a] bg-[#111113] px-4 py-3">
-                Match history & leaderboard ranks
+              <li className="flex items-center gap-3 rounded-xl border border-zinc-800/80 bg-[#141419]/90 px-4 py-3 shadow-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-accent border border-emerald-500/30">
+                  <Check className="w-3.5 h-3.5" />
+                </span>
+                <span>Match history & leaderboard ranks</span>
               </li>
             </ul>
 
-            <p className="text-xs text-[#71717a]">Free to join • Instant play</p>
+            <div className="relative z-10 flex items-center gap-2 text-xs text-zinc-500 font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              <span>Free to join • Instant play • No download required</span>
+            </div>
+
+            {/* Ambient glow */}
+            <div
+              className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl"
+              aria-hidden
+            />
           </aside>
 
-          <section className="animate-fade-in flex flex-col justify-center p-6 sm:p-10">
+          {/* Form */}
+          <section className="animate-fade-in flex flex-col justify-center p-6 sm:p-10 lg:p-12">
             <div className="mb-8 space-y-2 lg:hidden">
-              <p className="font-display text-sm font-bold tracking-[0.2em] text-[#fafafa]">
+              <p className="font-display text-xs font-bold tracking-[0.25em] text-accent uppercase">
                 PLAYHUB
               </p>
-              <h1 className="text-2xl font-extrabold text-[#fafafa]">Create account</h1>
+              <h1 className="text-2xl font-extrabold text-white font-display">Create account</h1>
             </div>
 
             <div className="mb-6 hidden lg:block">
-              <h2 className="text-2xl font-extrabold text-[#fafafa]">Sign Up</h2>
-              <p className="mt-1 text-sm text-[#a1a1aa]">
+              <h2 className="text-2xl font-extrabold text-white font-display">Sign Up</h2>
+              <p className="mt-1 text-sm text-zinc-400">
                 Set up your PlayHub account to start playing.
               </p>
             </div>
@@ -146,39 +172,46 @@ function Signup() {
               {success && (
                 <div
                   role="status"
-                  className="rounded-lg border border-[#22c55e]/40 bg-[#22c55e]/10 px-4 py-3 text-sm text-[#22c55e]"
+                  className="flex items-center gap-2.5 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-300 shadow-sm"
                 >
-                  {success}
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{success}</span>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label htmlFor="signup-name" className="text-sm font-medium text-[#a1a1aa]">
+              <div className="space-y-1.5">
+                <label htmlFor="signup-name" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
                   Name
                 </label>
-                <input
-                  id="signup-name"
-                  type="text"
-                  autoComplete="name"
-                  maxLength={30}
-                  value={name}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setName(val);
-                    if (errors.name && validateName(val) === null) {
-                      setErrors((prev) => ({ ...prev, name: null }));
-                    }
-                  }}
-                  onBlur={() => {
-                    setErrors((prev) => ({ ...prev, name: validateName(name) }));
-                  }}
-                  aria-invalid={!!errors.name}
-                  aria-describedby={errors.name ? "signup-name-error" : undefined}
-                  placeholder="Display name"
-                  className="input-field"
-                  disabled={isSubmitting}
-                  required
-                />
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="signup-name"
+                    type="text"
+                    autoComplete="name"
+                    maxLength={30}
+                    value={name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setName(val);
+                      if (errors.name && validateName(val) === null) {
+                        setErrors((prev) => ({ ...prev, name: null }));
+                      }
+                    }}
+                    onBlur={() => {
+                      setErrors((prev) => ({ ...prev, name: validateName(name) }));
+                    }}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "signup-name-error" : undefined}
+                    placeholder="Display name"
+                    className="input-field input-field-with-icon"
+                    style={{ paddingLeft: "2.75rem" }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
                 {errors.name && (
                   <p id="signup-name-error" role="alert" className="text-xs text-rose-400 mt-1">
                     {errors.name}
@@ -186,34 +219,40 @@ function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="signup-email" className="text-sm font-medium text-[#a1a1aa]">
+              <div className="space-y-1.5">
+                <label htmlFor="signup-email" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
                   Email
                 </label>
-                <input
-                  id="signup-email"
-                  type="email"
-                  autoComplete="email"
-                  maxLength={254}
-                  spellCheck={false}
-                  value={email}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setEmail(val);
-                    if (errors.email && validateEmail(val) === null) {
-                      setErrors((prev) => ({ ...prev, email: null }));
-                    }
-                  }}
-                  onBlur={() => {
-                    setErrors((prev) => ({ ...prev, email: validateEmail(email) }));
-                  }}
-                  aria-invalid={!!errors.email}
-                  aria-describedby={errors.email ? "signup-email-error" : undefined}
-                  placeholder="you@example.com"
-                  className="input-field"
-                  disabled={isSubmitting}
-                  required
-                />
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="signup-email"
+                    type="email"
+                    autoComplete="email"
+                    maxLength={254}
+                    spellCheck={false}
+                    value={email}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEmail(val);
+                      if (errors.email && validateEmail(val) === null) {
+                        setErrors((prev) => ({ ...prev, email: null }));
+                      }
+                    }}
+                    onBlur={() => {
+                      setErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+                    }}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "signup-email-error" : undefined}
+                    placeholder="you@example.com"
+                    className="input-field input-field-with-icon"
+                    style={{ paddingLeft: "2.75rem" }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
                 {errors.email && (
                   <p id="signup-email-error" role="alert" className="text-xs text-rose-400 mt-1">
                     {errors.email}
@@ -221,35 +260,41 @@ function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="signup-password" className="text-sm font-medium text-[#a1a1aa]">
+              <div className="space-y-1.5">
+                <label htmlFor="signup-password" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
                   Password
                 </label>
-                <input
-                  id="signup-password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setPassword(val);
-                    if (errors.password && validatePassword(val) === null) {
-                      setErrors((prev) => ({ ...prev, password: null }));
-                    }
-                    if (confirmPassword && errors.confirmPassword && val === confirmPassword) {
-                      setErrors((prev) => ({ ...prev, confirmPassword: null }));
-                    }
-                  }}
-                  onBlur={() => {
-                    setErrors((prev) => ({ ...prev, password: validatePassword(password) }));
-                  }}
-                  aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? "signup-password-error" : undefined}
-                  placeholder="At least 8 characters"
-                  className="input-field"
-                  disabled={isSubmitting}
-                  required
-                />
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="signup-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPassword(val);
+                      if (errors.password && validatePassword(val) === null) {
+                        setErrors((prev) => ({ ...prev, password: null }));
+                      }
+                      if (confirmPassword && errors.confirmPassword && val === confirmPassword) {
+                        setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                      }
+                    }}
+                    onBlur={() => {
+                      setErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+                    }}
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? "signup-password-error" : undefined}
+                    placeholder="At least 8 characters"
+                    className="input-field input-field-with-icon"
+                    style={{ paddingLeft: "2.75rem" }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
                 {errors.password && (
                   <p id="signup-password-error" role="alert" className="text-xs text-rose-400 mt-1">
                     {errors.password}
@@ -257,38 +302,44 @@ function Signup() {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label
                   htmlFor="signup-confirm-password"
-                  className="text-sm font-medium text-[#a1a1aa]"
+                  className="block text-xs font-semibold uppercase tracking-wider text-zinc-300"
                 >
                   Confirm password
                 </label>
-                <input
-                  id="signup-confirm-password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setConfirmPassword(val);
-                    if (errors.confirmPassword && validateConfirmPassword(val, password) === null) {
-                      setErrors((prev) => ({ ...prev, confirmPassword: null }));
-                    }
-                  }}
-                  onBlur={() => {
-                    setErrors((prev) => ({
-                      ...prev,
-                      confirmPassword: validateConfirmPassword(confirmPassword, password),
-                    }));
-                  }}
-                  aria-invalid={!!errors.confirmPassword}
-                  aria-describedby={errors.confirmPassword ? "signup-confirm-password-error" : undefined}
-                  placeholder="Re-enter password"
-                  className="input-field"
-                  disabled={isSubmitting}
-                  required
-                />
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="signup-confirm-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setConfirmPassword(val);
+                      if (errors.confirmPassword && validateConfirmPassword(val, password) === null) {
+                        setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                      }
+                    }}
+                    onBlur={() => {
+                      setErrors((prev) => ({
+                        ...prev,
+                        confirmPassword: validateConfirmPassword(confirmPassword, password),
+                      }));
+                    }}
+                    aria-invalid={!!errors.confirmPassword}
+                    aria-describedby={errors.confirmPassword ? "signup-confirm-password-error" : undefined}
+                    placeholder="Re-enter password"
+                    className="input-field input-field-with-icon"
+                    style={{ paddingLeft: "2.75rem" }}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
                 {errors.confirmPassword && (
                   <p
                     id="signup-confirm-password-error"
@@ -302,12 +353,12 @@ function Signup() {
 
               <button
                 type="submit"
-                className="btn-primary w-full py-3.5"
+                className="btn-primary w-full py-3 mt-2 cursor-pointer"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <LoadingSpinner size="sm" className="text-[#052e16]" />
+                    <LoadingSpinner size="sm" className="text-zinc-950" />
                     <span>Creating account...</span>
                   </span>
                 ) : (
@@ -316,16 +367,22 @@ function Signup() {
               </button>
             </form>
 
-            <div className="mt-6 space-y-3 text-center text-sm text-[#a1a1aa]">
+            <div className="mt-6 space-y-3 text-center text-sm text-zinc-400">
               <p>
                 Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-[#fafafa] hover:underline">
+                <Link to="/login" className="font-semibold text-accent hover:text-accent-hover transition-colors">
                   Login
                 </Link>
               </p>
-              <Link to="/" className="inline-flex font-medium text-[#71717a] hover:text-[#fafafa]">
-                ← Back to Landing
-              </Link>
+              <div>
+                <Link
+                  to="/"
+                  className="group inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+                  <span>Back to Landing</span>
+                </Link>
+              </div>
             </div>
           </section>
         </div>

@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  Loader2,
+  ShieldAlert,
+  Swords,
+  X,
+} from "lucide-react";
 import { socket } from "../Socket";
 import type {
   ChallengeAcceptedPayload,
@@ -18,7 +27,7 @@ export default function ChallengeOverlay() {
     useState<ChallengeReceivedPayload | null>(null);
 
   // Outgoing challenge sent by the current player
-  const [outgoingChallenge, setOutgoingChallenge] =  useState<ChallengeSentPayload | null>(null);
+  const [outgoingChallenge, setOutgoingChallenge] = useState<ChallengeSentPayload | null>(null);
 
   // Informational toast / notification banner
   const [toastMessage, setToastMessage] = useState<{
@@ -204,24 +213,24 @@ export default function ChallengeOverlay() {
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 max-w-sm animate-bounce-short">
           <div
-            className={`flex items-start gap-3 rounded-xl border p-4 bg-[#111113] ${
+            className={`flex items-start gap-3 rounded-2xl border p-4 bg-[#111115]/95 backdrop-blur-md shadow-[0_12px_40px_-8px_rgba(0,0,0,0.7)] ${
               toastMessage.type === "success"
                 ? "border-emerald-500/40 text-emerald-300"
                 : toastMessage.type === "error"
-                  ? "border-red-500/40 text-red-300"
-                  : toastMessage.type === "warning"
-                    ? "border-amber-500/40 text-amber-300"
-                    : "border-[#27272a] text-[#fafafa]"
+                ? "border-rose-500/40 text-rose-300"
+                : toastMessage.type === "warning"
+                ? "border-amber-500/40 text-amber-300"
+                : "border-zinc-800 text-zinc-100"
             }`}
           >
-            <span className="text-xl">
-              {toastMessage.type === "success" && "🏆"}
-              {toastMessage.type === "error" && "⚠️"}
-              {toastMessage.type === "warning" && "🛡️"}
-              {toastMessage.type === "info" && "ℹ️"}
+            <span className="shrink-0 pt-0.5">
+              {toastMessage.type === "success" && <CheckCircle2 className="w-5 h-5 text-accent" />}
+              {toastMessage.type === "error" && <AlertCircle className="w-5 h-5 text-rose-400" />}
+              {toastMessage.type === "warning" && <ShieldAlert className="w-5 h-5 text-amber-400" />}
+              {toastMessage.type === "info" && <Info className="w-5 h-5 text-cyan-400" />}
             </span>
             <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-white">
+              <h4 className="text-sm font-bold text-white font-display">
                 {toastMessage.title}
               </h4>
               <p className="mt-0.5 text-xs text-zinc-400 leading-snug">
@@ -229,11 +238,12 @@ export default function ChallengeOverlay() {
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setToastMessage(null)}
-              className="text-zinc-500 hover:text-white transition-colors"
+              className="p-1 text-zinc-500 hover:text-white transition-colors cursor-pointer"
               aria-label="Close notification"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -241,22 +251,25 @@ export default function ChallengeOverlay() {
 
       {/* INCOMING CHALLENGE MODAL */}
       {incomingChallenge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/80 p-4 animate-fade-in">
-          <div className="relative w-full max-w-md rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-3xl border border-zinc-800/90 bg-[#121217] p-6 sm:p-8 shadow-[0_24px_70px_-15px_rgba(0,0,0,0.9)]">
             <div className="relative z-10 space-y-5 text-center">
-              {/* Flat Avatar */}
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#27272a] border border-[#3f3f46] text-2xl font-bold text-white">
+              {/* Challenger Avatar */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-850 border border-zinc-700 text-2xl font-bold text-white shadow-inner">
                 {incomingChallenge.challenger.name
                   ? incomingChallenge.challenger.name.charAt(0).toUpperCase()
                   : "P"}
               </div>
 
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Incoming Challenge
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-sm shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span>Incoming Challenge</span>
                 </span>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                <h3 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white font-display">
                   {incomingChallenge.challenger.name}
                 </h3>
                 <p className="mt-1 text-xs sm:text-sm text-zinc-400">
@@ -266,15 +279,15 @@ export default function ChallengeOverlay() {
 
               {/* Expiry Progress Indicator */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] text-zinc-400">
+                <div className="flex justify-between text-[11px] text-zinc-400 font-medium">
                   <span>Auto-declines in</span>
-                  <span className="font-mono font-bold text-emerald-400">
+                  <span className="font-mono font-bold text-accent">
                     {countdown}s
                   </span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#27272a]">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
                   <div
-                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-linear"
+                    className="h-full rounded-full bg-accent transition-all duration-1000 ease-linear shadow-[0_0_8px_rgba(34,197,94,0.5)]"
                     style={{ width: `${(countdown / 30) * 100}%` }}
                   />
                 </div>
@@ -283,21 +296,23 @@ export default function ChallengeOverlay() {
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
+                  type="button"
                   onClick={handleDecline}
                   disabled={isAccepting}
-                  className="rounded-lg border border-[#3f3f46] bg-[#27272a] py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#3f3f46] disabled:opacity-50"
+                  className="rounded-xl border border-zinc-700 bg-zinc-800/80 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white disabled:opacity-50 cursor-pointer"
                 >
                   Decline
                 </button>
                 <button
+                  type="button"
                   onClick={handleAccept}
                   disabled={isAccepting}
-                  className="rounded-lg bg-[#22c55e] py-2.5 text-xs font-semibold text-[#052e16] transition-colors hover:bg-[#16a34a] disabled:opacity-50"
+                  className="rounded-xl bg-accent py-2.5 text-xs font-semibold text-zinc-950 transition-all hover:bg-accent-hover shadow-[0_0_16px_-2px_rgba(34,197,94,0.3)] hover:shadow-[0_0_20px_-2px_rgba(34,197,94,0.45)] disabled:opacity-50 cursor-pointer"
                 >
                   {isAccepting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#052e16] border-t-transparent" />
-                      Entering...
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Entering...</span>
                     </span>
                   ) : (
                     "✓ Accept & Play"
@@ -311,20 +326,23 @@ export default function ChallengeOverlay() {
 
       {/* OUTGOING CHALLENGE WAITING MODAL */}
       {outgoingChallenge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0b]/80 p-4 animate-fade-in">
-          <div className="relative w-full max-w-md rounded-xl border border-[#27272a] bg-[#111113] p-6 sm:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-3xl border border-zinc-800/90 bg-[#121217] p-6 sm:p-8 shadow-[0_24px_70px_-15px_rgba(0,0,0,0.9)]">
             <div className="relative z-10 space-y-5 text-center">
-              {/* Flat Icon */}
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-[#27272a] border border-[#3f3f46] text-2xl font-bold text-white">
-                ⚔️
+              {/* Radar Swords Icon */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-accent shadow-sm">
+                <Swords className="w-7 h-7 animate-pulse" />
               </div>
 
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Challenge Sent
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-accent">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span>Challenge Sent</span>
                 </span>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                <h3 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white font-display">
                   Waiting for {outgoingChallenge.target.name}
                 </h3>
                 <p className="mt-1 text-xs sm:text-sm text-zinc-400">
@@ -336,8 +354,9 @@ export default function ChallengeOverlay() {
               {/* Cancel Challenge CTA */}
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={handleCancelOutgoing}
-                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-6 py-2.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20"
+                  className="rounded-xl border border-rose-500/30 bg-rose-950/30 px-6 py-2.5 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-900/40 hover:text-rose-200 cursor-pointer"
                 >
                   Cancel Challenge
                 </button>

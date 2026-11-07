@@ -1,5 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Crown,
+  Handshake,
+  Hourglass,
+  Loader2,
+  LogOut,
+  Radio,
+  RotateCcw,
+  Sparkles,
+  Swords,
+  Target,
+  Trophy,
+} from "lucide-react";
 import { socket } from "../Socket";
 import Board from "../components/Board";
 import GameList from "../components/GameList";
@@ -456,11 +472,9 @@ function Game() {
                 <button
                   type="button"
                   onClick={handleBackToDashboard}
-                  className="group inline-flex min-h-[36px] sm:min-h-[40px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3 py-1.5 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                  className="group inline-flex min-h-[36px] sm:min-h-[40px] items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-white cursor-pointer select-none"
                 >
-                  <span className="transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none">
-                    ←
-                  </span>
+                  <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                   <span>Back to Dashboard</span>
                 </button>
               ) : (
@@ -472,46 +486,47 @@ function Game() {
             </div>
 
             <div>
-              <span className="match-compact-hide inline-block rounded-md border border-[#3f3f46] bg-[#18181b] px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-[#fafafa]">
-                1v1 Tactical Arena
+              <span className="match-compact-hide inline-flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-300">
+                <Sparkles className="w-3 h-3 text-accent" />
+                <span>1v1 Tactical Arena</span>
               </span>
-              <h1 className="match-compact-title mt-1 text-lg sm:text-2xl font-black tracking-tight text-[#fafafa]">
+              <h1 className="match-compact-title mt-1 text-lg sm:text-2xl font-black tracking-tight text-white font-display">
                 Tic-Tac-Toe
               </h1>
-              <p className="match-compact-hide text-[11px] sm:text-xs text-[#a1a1aa]">
+              <p className="match-compact-hide text-[11px] sm:text-xs text-zinc-400">
                 Live Multiplayer Turn-Based Battle
               </p>
             </div>
           </div>
 
           {/* 2. Compact Player Row */}
-          <div className="shrink-0 grid grid-cols-2 gap-2 w-full">
+          <div className="shrink-0 grid grid-cols-2 gap-2.5 w-full">
             {/* Circle Player Card */}
             <div
-              className={`relative rounded-lg sm:rounded-xl border p-2 sm:p-2.5 transition-colors ${
+              className={`relative rounded-xl border p-2 sm:p-2.5 transition-all duration-200 ${
                 game.currentPlayer === "circle" && !game.winner
-                  ? "border-[#5ab0e6] bg-[#0a0a0b]"
-                  : "border-[#27272a] bg-[#0a0a0b]"
+                  ? "border-cyan-500/60 bg-cyan-950/20 shadow-[0_0_16px_rgba(6,182,212,0.2)] ring-1 ring-cyan-500/40"
+                  : "border-zinc-800/80 bg-[#101015]"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md border border-[#27272a] bg-[#111113] text-xs sm:text-sm font-black text-[#5ab0e6]">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/40 text-sm sm:text-base font-black text-cyan-400 shadow-sm">
                   O
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <div className="flex items-center gap-1">
-                    <p className="truncate text-xs font-bold text-[#fafafa]">
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-xs font-bold text-white">
                       {player === "circle"
                         ? user?.name || "Player"
                         : "Opponent"}
                     </p>
                     {player === "circle" && (
-                      <span className="shrink-0 rounded bg-[#5ab0e6]/20 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#5ab0e6]">
+                      <span className="shrink-0 rounded-full bg-cyan-500/20 border border-cyan-500/40 px-1.5 py-0.2 text-[8px] sm:text-[9px] font-bold text-cyan-300">
                         YOU
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-[#5ab0e6] font-semibold truncate">
+                  <p className="text-[10px] text-cyan-400 font-semibold truncate">
                     Circle (O)
                   </p>
                 </div>
@@ -520,28 +535,28 @@ function Game() {
 
             {/* Cross Player Card */}
             <div
-              className={`relative rounded-lg sm:rounded-xl border p-2 sm:p-2.5 transition-colors ${
+              className={`relative rounded-xl border p-2 sm:p-2.5 transition-all duration-200 ${
                 game.currentPlayer === "cross" && !game.winner
-                  ? "border-[#7c6ee6] bg-[#0a0a0b]"
-                  : "border-[#27272a] bg-[#0a0a0b]"
+                  ? "border-purple-500/60 bg-purple-950/20 shadow-[0_0_16px_rgba(168,85,247,0.2)] ring-1 ring-purple-500/40"
+                  : "border-zinc-800/80 bg-[#101015]"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md border border-[#27272a] bg-[#111113] text-xs sm:text-sm font-black text-[#7c6ee6]">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-950/40 text-sm sm:text-base font-black text-purple-400 shadow-sm">
                   X
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <div className="flex items-center gap-1">
-                    <p className="truncate text-xs font-bold text-[#fafafa]">
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-xs font-bold text-white">
                       {player === "cross" ? user?.name || "Player" : "Opponent"}
                     </p>
                     {player === "cross" && (
-                      <span className="shrink-0 rounded bg-[#7c6ee6]/20 px-1 py-0.2 text-[8px] sm:text-[9px] font-bold text-[#7c6ee6]">
+                      <span className="shrink-0 rounded-full bg-purple-500/20 border border-purple-500/40 px-1.5 py-0.2 text-[8px] sm:text-[9px] font-bold text-purple-300">
                         YOU
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-[#7c6ee6] font-semibold truncate">
+                  <p className="text-[10px] text-purple-400 font-semibold truncate">
                     Cross (X)
                   </p>
                 </div>
@@ -558,31 +573,36 @@ function Game() {
                 onDismiss={() => setMatchError(null)}
               />
             )}
+
             {!game.winner && gameStatus === "playing" && (
               <div
-                className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-center text-xs font-bold leading-tight truncate ${
+                className={`flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-center text-xs font-bold leading-tight truncate shadow-sm transition-all ${
                   isMyTurn
-                    ? "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]"
-                    : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                    ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300 shadow-[0_0_16px_rgba(34,197,94,0.15)]"
+                    : "border-amber-500/40 bg-amber-950/30 text-amber-300"
                 }`}
               >
-                <span className="shrink-0">{isMyTurn ? "🎯" : "⏳"}</span>
+                {isMyTurn ? (
+                  <Target className="w-4 h-4 shrink-0 text-accent animate-pulse" />
+                ) : (
+                  <Hourglass className="w-4 h-4 shrink-0 text-amber-400 animate-spin" />
+                )}
                 <span className="font-bold">
                   {isMyTurn ? "Your Turn" : "Opponent's Turn"}
                 </span>
-                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
+                <span className="hidden sm:inline text-xs text-zinc-400 truncate">
                   {isMyTurn
-                    ? "— Choose a square to place your symbol"
-                    : "— Waiting for rival move..."}
+                    ? "— Choose an empty cell to place your symbol"
+                    : "— Waiting for rival to move..."}
                 </span>
               </div>
             )}
 
             {gameStatus === "opponent-left" && (
-              <div className="flex items-center justify-center gap-2 rounded-lg border border-[#22c55e]/40 bg-[#22c55e]/10 px-3 py-1.5 text-center text-xs font-bold text-[#22c55e] leading-tight truncate">
-                <span className="shrink-0">🚪</span>
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-3.5 py-2 text-center text-xs font-bold text-emerald-300 leading-tight truncate shadow-sm">
+                <LogOut className="w-4 h-4 shrink-0 text-emerald-400" />
                 <span className="font-bold">Opponent Disconnected</span>
-                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
+                <span className="hidden sm:inline text-xs text-zinc-400 truncate">
                   — Your opponent has left the match. You have been awarded the
                   victory!
                 </span>
@@ -590,7 +610,7 @@ function Game() {
             )}
 
             {gameStatus === "opponent-disconnected" && (
-              <div className="rounded-lg border border-[#27272a] bg-[#18181b] px-3 py-2 text-center text-xs text-[#a1a1aa]">
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-2 text-center text-xs text-zinc-400">
                 Your opponent left the finished match. Return to the dashboard
                 to start a new game.
               </div>
@@ -598,34 +618,34 @@ function Game() {
 
             {game.winner && gameStatus !== "opponent-left" && (
               <div
-                className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-center text-xs font-bold leading-tight truncate ${
+                className={`flex items-center justify-center gap-2.5 rounded-xl border px-3.5 py-2 text-center text-xs font-bold leading-tight truncate shadow-sm ${
                   game.winner === "draw"
-                    ? "border-[#3f3f46] bg-[#18181b] text-[#fafafa]"
+                    ? "border-zinc-700 bg-zinc-850 text-white"
                     : game.winner === player
-                      ? "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]"
-                      : "border-rose-500/40 bg-rose-500/10 text-rose-300"
+                    ? "border-emerald-500/40 bg-emerald-950/40 text-emerald-300 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
+                    : "border-rose-500/40 bg-rose-950/40 text-rose-300"
                 }`}
               >
-                <span className="shrink-0">
-                  {game.winner === "draw"
-                    ? "🤝"
-                    : game.winner === player
-                      ? "🏆"
-                      : "💔"}
-                </span>
+                {game.winner === "draw" ? (
+                  <Handshake className="w-4 h-4 shrink-0 text-zinc-300" />
+                ) : game.winner === player ? (
+                  <Trophy className="w-4 h-4 shrink-0 text-accent animate-bounce-short" />
+                ) : (
+                  <span className="text-base shrink-0">💔</span>
+                )}
                 <span className="font-bold">
                   {game.winner === "draw"
                     ? "Stalemate — It's a Draw!"
                     : game.winner === player
-                      ? "VICTORY — You Won!"
-                      : "DEFEAT — You Lost!"}
+                    ? "VICTORY — You Won!"
+                    : "DEFEAT — You Lost!"}
                 </span>
-                <span className="hidden sm:inline text-xs text-[#a1a1aa] truncate">
+                <span className="hidden sm:inline text-xs text-zinc-400 truncate">
                   {game.winner === "draw"
                     ? "— Well played from both sides. Ready for a decider?"
                     : game.winner === player
-                      ? "— Great game! Outstanding tactical positioning."
-                      : "— Better luck next round! Request a rematch to settle the score."}
+                    ? "— Outstanding tactical positioning."
+                    : "— Better luck next round! Request a rematch to settle the score."}
                 </span>
               </div>
             )}
@@ -647,7 +667,7 @@ function Game() {
           {/* 5. Bottom Actions Row */}
           <div className="shrink-0 w-full py-1">
             {game.winner && gameStatus === "finished" ? (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {rematchError && (
                   <ErrorMessage
                     compact
@@ -656,9 +676,10 @@ function Game() {
                   />
                 )}
                 {opponentRequested && (
-                  <p className="text-center text-xs font-semibold text-[#22c55e]">
-                    ⚔️ Your opponent has requested a rematch!
-                  </p>
+                  <div className="flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-accent animate-pulse">
+                    <Swords className="w-3.5 h-3.5" />
+                    <span>Your opponent has requested a rematch!</span>
+                  </div>
                 )}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 w-full">
                   {!opponentRequested && (
@@ -666,11 +687,19 @@ function Game() {
                       type="button"
                       onClick={handleRematchRequest}
                       disabled={waitingForOpponent}
-                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-accent-glow"
                     >
-                      {waitingForOpponent
-                        ? "Waiting for opponent..."
-                        : "🔄 Request Rematch"}
+                      {waitingForOpponent ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Waiting for opponent...</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5">
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Request Rematch</span>
+                        </span>
+                      )}
                     </button>
                   )}
 
@@ -679,20 +708,28 @@ function Game() {
                       type="button"
                       onClick={handleRematchRequest}
                       disabled={waitingForOpponent}
-                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="btn-primary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-5 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-accent-glow"
                     >
-                      {waitingForOpponent
-                        ? "Starting Rematch..."
-                        : "✓ Accept Rematch"}
+                      {waitingForOpponent ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Starting Rematch...</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Accept Rematch</span>
+                        </span>
+                      )}
                     </button>
                   )}
 
                   <button
                     type="button"
                     onClick={handleLeaveGame}
-                    className="btn-secondary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-4 sm:px-5 py-2 text-xs font-semibold cursor-pointer"
+                    className="btn-secondary min-h-[40px] sm:min-h-[44px] w-full sm:w-auto px-5 py-2 text-xs font-semibold cursor-pointer"
                   >
-                    Leave Match
+                    <span>Leave Match</span>
                   </button>
                 </div>
               </div>
@@ -701,9 +738,10 @@ function Game() {
                 <button
                   type="button"
                   onClick={handleLeaveGame}
-                  className="inline-flex min-h-[40px] sm:min-h-[44px] items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 px-5 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 cursor-pointer"
+                  className="inline-flex min-h-[38px] sm:min-h-[42px] items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-950/30 px-5 py-2 text-xs font-semibold text-rose-300 transition-all hover:bg-rose-900/40 hover:text-rose-200 cursor-pointer shadow-sm"
                 >
-                  Leave Game
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Leave Game</span>
                 </button>
               </div>
             )}
@@ -725,11 +763,9 @@ function Game() {
               <button
                 type="button"
                 onClick={handleBackToDashboard}
-                className="group inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                className="group inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 sm:px-4 py-2 text-xs font-semibold text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-white cursor-pointer select-none"
               >
-                <span className="transition-transform group-hover:-translate-x-0.5 motion-reduce:transform-none">
-                  ←
-                </span>
+                <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                 <span>Back to Dashboard</span>
               </button>
 
@@ -739,7 +775,7 @@ function Game() {
                   <button
                     type="button"
                     onClick={() => setSelectedGame(null)}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#111113] px-3.5 sm:px-4 py-2 text-xs font-semibold text-[#a1a1aa] transition hover:border-[#3f3f46] hover:bg-[#18181b] hover:text-[#fafafa] cursor-pointer"
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 sm:px-4 py-2 text-xs font-semibold text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800 hover:text-white cursor-pointer select-none"
                   >
                     <span>All games</span>
                   </button>
@@ -755,18 +791,19 @@ function Game() {
         </div>
 
         {/* Main Arena Card */}
-        <div className="relative overflow-hidden rounded-xl border border-[#27272a] bg-[#111113] p-4 sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#121217] p-5 sm:p-8 shadow-[0_16px_50px_-10px_rgba(0,0,0,0.7)]">
           {/* Arena Title */}
-          <div className="mb-4 sm:mb-6 text-center">
-            <span className="rounded-md border border-[#3f3f46] bg-[#18181b] px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#fafafa]">
-              1v1 Tactical Arena
+          <div className="mb-6 sm:mb-8 text-center space-y-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-300">
+              <Sparkles className="w-3 h-3 text-accent" />
+              <span>1v1 Tactical Arena</span>
             </span>
-            <h1 className="mt-1.5 sm:mt-2 text-2xl sm:text-4xl font-black tracking-tight text-[#fafafa]">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white font-display">
               {selectedGame === null && gameStatus === "idle" && !roomId
                 ? "Select Game"
-                : "Tic-Tac-Toe"}
+                : "Tic-Tac-Toe Arena"}
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#a1a1aa]">
+            <p className="text-xs sm:text-sm text-zinc-400">
               {selectedGame === null && gameStatus === "idle" && !roomId
                 ? "Choose a title to enter the arena"
                 : "Live Multiplayer Turn-Based Battle"}
@@ -803,26 +840,28 @@ function Game() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Host a match */}
-                  <div className="flex flex-col justify-between rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 transition hover:border-[#3f3f46]">
-                    <div className="space-y-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
-                        👑
+                  <div className="flex flex-col justify-between rounded-2xl border border-zinc-800/80 bg-[#0d0d10] p-5 transition-all duration-150 hover:border-zinc-700 hover:bg-[#111115]">
+                    <div className="space-y-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-950/30 text-amber-400 shadow-sm">
+                        <Crown className="w-5 h-5" />
                       </div>
-                      <h3 className="text-base font-bold text-[#fafafa]">
-                        Host Match
-                      </h3>
-                      <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                        Generate a private room code and invite a friend to
-                        play.
-                      </p>
+                      <div>
+                        <h3 className="text-base font-bold text-white font-display">
+                          Host Match
+                        </h3>
+                        <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+                          Generate a private room code and invite a friend to play.
+                        </p>
+                      </div>
                     </div>
                     <button
+                      type="button"
                       onClick={handleCreateRoom}
                       disabled={!isConnected || isCreatingRoom || isJoiningRoom}
-                      className="btn-primary mt-4 flex min-h-[44px] items-center justify-center gap-2 w-full py-3 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="btn-primary mt-6 flex min-h-[44px] items-center justify-center gap-2 w-full py-3 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-accent-glow"
                     >
                       {isCreatingRoom && (
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#052e16] border-t-transparent" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       )}
                       <span>
                         {isCreatingRoom
@@ -833,20 +872,22 @@ function Game() {
                   </div>
 
                   {/* Join a match */}
-                  <div className="flex flex-col justify-between rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5 transition hover:border-[#3f3f46]">
-                    <div className="space-y-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#27272a] bg-[#18181b] text-base">
-                        ⚔️
+                  <div className="flex flex-col justify-between rounded-2xl border border-zinc-800/80 bg-[#0d0d10] p-5 transition-all duration-150 hover:border-zinc-700 hover:bg-[#111115]">
+                    <div className="space-y-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-950/30 text-purple-400 shadow-sm">
+                        <Swords className="w-5 h-5" />
                       </div>
-                      <h3 className="text-base font-bold text-[#fafafa]">
-                        Join Match
-                      </h3>
-                      <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                        Enter an invite code provided by another player.
-                      </p>
+                      <div>
+                        <h3 className="text-base font-bold text-white font-display">
+                          Join Match
+                        </h3>
+                        <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+                          Enter an invite code provided by another player.
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-5 space-y-2.5">
                       <input
                         value={roomInput}
                         onChange={(e) => {
@@ -872,10 +913,10 @@ function Game() {
                         autoCapitalize="characters"
                         spellCheck={false}
                         disabled={isCreatingRoom || isJoiningRoom}
-                        className={`w-full min-h-[44px] rounded-lg border bg-[#111113] px-3.5 py-2.5 text-xs text-[#fafafa] placeholder:text-[#71717a] focus:outline-none uppercase font-mono tracking-wider transition ${
+                        className={`w-full min-h-[44px] rounded-xl border bg-[#141419] px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none uppercase font-mono tracking-widest transition-all ${
                           roomError
-                            ? "border-rose-500 focus:border-rose-500"
-                            : "border-[#27272a] focus:border-[#22c55e]"
+                            ? "border-rose-500 focus:ring-2 focus:ring-rose-500/20"
+                            : "border-zinc-800 focus:border-accent focus:ring-2 focus:ring-accent/20"
                         }`}
                       />
                       {roomError && (
@@ -888,6 +929,7 @@ function Game() {
                         </p>
                       )}
                       <button
+                        type="button"
                         onClick={joinRoom}
                         disabled={
                           !isConnected ||
@@ -898,7 +940,7 @@ function Game() {
                         className="btn-secondary flex min-h-[44px] items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
                         {isJoiningRoom && (
-                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         )}
                         <span>
                           {isJoiningRoom ? "Joining Room..." : "Join Room"}
@@ -909,11 +951,9 @@ function Game() {
                 </div>
 
                 {/* Game Info Pill */}
-                <div className="rounded-lg border border-[#27272a] bg-[#0a0a0b] p-3 text-center text-xs text-[#a1a1aa]">
-                  <span>
-                    💡 Circle (⭕) always makes the opening move. 3 in a row to
-                    win!
-                  </span>
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800/80 bg-[#0d0d10] p-3 text-center text-xs text-zinc-400">
+                  <span className="text-accent font-semibold">Tip:</span>
+                  <span>Circle (⭕) always makes the opening move. 3 in a row to win!</span>
                 </div>
               </div>
             ))}
@@ -930,34 +970,45 @@ function Game() {
                   />
                 </div>
               )}
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#27272a] bg-[#18181b] text-2xl">
-                📡
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-950/30 text-accent shadow-sm">
+                <Radio className="w-6 h-6 animate-pulse" />
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-[#fafafa]">
+                <h3 className="text-xl font-bold text-white font-display">
                   Waiting for Challenger
                 </h3>
-                <p className="text-xs text-[#a1a1aa] max-w-sm mx-auto">
+                <p className="text-xs text-zinc-400 max-w-sm mx-auto">
                   Share this room code with your opponent. The match starts as
                   soon as they join.
                 </p>
               </div>
 
               {/* Room Code Showcase */}
-              <div className="mx-auto max-w-sm rounded-xl border border-[#27272a] bg-[#0a0a0b] p-4 sm:p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#a1a1aa]">
+              <div className="mx-auto max-w-sm rounded-2xl border border-zinc-800/90 bg-[#0d0d10] p-5 shadow-inner">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                   Room Invite Code
                 </p>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-                  <span className="font-mono text-2xl sm:text-3xl font-black tracking-[0.25em] text-[#fafafa]">
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+                  <span className="font-mono text-3xl font-black tracking-[0.25em] text-white select-all">
                     {roomId}
                   </span>
                   <button
+                    type="button"
                     onClick={handleCopyRoomId}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-[#27272a] bg-[#18181b] px-3.5 py-2 text-xs font-semibold text-[#fafafa] transition hover:bg-[#27272a] cursor-pointer"
+                    className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-700 cursor-pointer shadow-sm active:scale-95"
                   >
-                    <span>{copied ? "✓ Copied!" : "📋 Copy"}</span>
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-accent" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -965,10 +1016,12 @@ function Game() {
               {/* Cancel / Leave */}
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={handleLeaveGame}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 px-5 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 cursor-pointer"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-950/30 px-5 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-900/40 cursor-pointer"
                 >
-                  Cancel & Leave Room
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Cancel & Leave Room</span>
                 </button>
               </div>
             </div>

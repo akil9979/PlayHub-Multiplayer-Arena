@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Loader2, Radio, Swords, Users } from "lucide-react";
 import type { OnlineUser } from "../types/game";
 import { socket } from "../Socket";
 import { useSocketStatus } from "../utils/useSocketStatus";
@@ -75,10 +76,11 @@ export default function OnlinePlayers({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>🟢 Online Players</span>
+          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2 font-display">
+            <Radio className="w-5 h-5 text-accent animate-pulse" />
+            <span>Online Players</span>
           </h2>
           <p className="text-xs text-zinc-400">
             Challenge players currently active in the PlayHub arena
@@ -86,12 +88,15 @@ export default function OnlinePlayers({
         </div>
         <div className="flex items-center gap-2.5">
           <SocketStatusBadge showLabel={false} />
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-sm shadow-sm select-none">
             <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            {onlineUsers.length} Active{" "}
-            {onlineUsers.length === 1 ? "Player" : "Players"}
+            <span>
+              {onlineUsers.length} Active{" "}
+              {onlineUsers.length === 1 ? "Player" : "Players"}
+            </span>
           </span>
         </div>
       </div>
@@ -104,7 +109,7 @@ export default function OnlinePlayers({
         <LoadingSpinner center label="Finding online players..." />
       ) : otherPlayers.length === 0 ? (
         <EmptyState
-          icon="👥"
+          icon={<Users className="w-6 h-6 text-zinc-500" />}
           title="No other players online right now"
           description="You're currently the only player in the arena. Create a private match room to invite a friend!"
           action={{
@@ -123,26 +128,27 @@ export default function OnlinePlayers({
             return (
               <div
                 key={player.userId}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[#27272a] bg-[#111113] p-3.5 transition-colors hover:border-[#3f3f46] hover:bg-[#18181b]"
+                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-[#121217] p-3.5 transition-all duration-150 hover:border-zinc-700 hover:bg-[#15151c] shadow-sm"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#27272a] border border-[#3f3f46] text-sm font-bold text-[#fafafa]">
+                  <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-850 border border-zinc-750 text-sm font-bold text-white shadow-inner">
                     {player.name ? player.name.charAt(0).toUpperCase() : "P"}
-                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#111113] bg-emerald-500"></span>
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#121217] bg-emerald-500 shadow-sm" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-[#fafafa]">
+                    <p className="truncate text-xs font-semibold text-zinc-100">
                       {player.name}
                     </p>
-                    <div className="flex items-center gap-1 text-[11px] text-emerald-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                      <span>Online</span>
+                    <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      <span>Ready to play</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <button
+                    type="button"
                     onClick={() => handleSendChallenge(player.userId)}
                     disabled={isDisabled}
                     title={
@@ -152,23 +158,26 @@ export default function OnlinePlayers({
                         ? "Challenge in progress"
                         : "Send challenge"
                     }
-                    className={`inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none cursor-pointer ${
                       isPendingThisPlayer
-                        ? "border border-amber-500/30 bg-amber-500/10 text-amber-300 cursor-not-allowed"
+                        ? "border border-amber-500/40 bg-amber-950/30 text-amber-300 cursor-not-allowed"
                         : isDisabled
-                          ? "border border-[#27272a] bg-[#18181b] text-zinc-500 cursor-not-allowed"
-                          : "bg-[#22c55e] text-[#052e16] hover:bg-[#16a34a]"
+                        ? "border border-zinc-800 bg-zinc-900/60 text-zinc-500 cursor-not-allowed"
+                        : "bg-accent text-zinc-950 hover:bg-accent-hover shadow-[0_0_12px_-2px_rgba(34,197,94,0.3)] hover:shadow-[0_0_16px_-2px_rgba(34,197,94,0.45)] active:scale-95"
                     }`}
                   >
                     {isPendingThisPlayer ? (
                       <span className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        Pending...
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Pending...</span>
                       </span>
                     ) : !isConnected ? (
                       "Offline"
                     ) : (
-                      "⚔️ Challenge"
+                      <>
+                        <Swords className="w-3.5 h-3.5" />
+                        <span>Challenge</span>
+                      </>
                     )}
                   </button>
                 </div>

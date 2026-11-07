@@ -19,15 +19,15 @@ import ChallengeOverlay from "./components/ChallengeOverlay";
 function AuthLoadingScreen() {
   return (
     <div className="page-shell flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-3 text-center">
+      <div className="flex flex-col items-center gap-3 text-center animate-fade-in">
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-[#22c55e] border-t-transparent"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[#22c55e] border-t-transparent drop-shadow-[0_0_12px_rgba(34,197,94,0.4)]"
           aria-hidden
         />
-        <p className="font-display text-sm font-semibold tracking-wider text-[#22c55e]">
-          PLAYHUB
+        <p className="font-display text-sm font-bold tracking-widest text-[#22c55e] uppercase">
+          PLAY<span className="text-white">HUB</span>
         </p>
-        <p className="text-sm text-zinc-400">Checking authentication...</p>
+        <p className="text-xs text-zinc-400">Authenticating session...</p>
       </div>
     </div>
   );
